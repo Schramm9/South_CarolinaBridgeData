@@ -277,6 +277,300 @@ s =  pd.value_counts(df20_19_18_17.EN)
 s1 = pd.Series({'nunique': len(s), 'unique values': s.index.tolist()})
 s.append(s1)
 
+# total of all CS1 thru CS4 with units of Square Feet
+
+# df20_19_18_17['EN'] = np.where(df20_19_18_17['EN'].values >= 12) & (df20_19_18_17['EN'].values <= 65), sum('CS1_17')
+
+
+# Units of Square Feet
+# EN 12 - 65 dfDeckSlab refers to bridge elements decks and slabs with a Condition State measured in square feet
+dfDeckSlab = df20_19_18_17.loc[(df20_19_18_17['EN'] >= 12) & (df20_19_18_17['EN'] <= 65), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17']]
+
+# EN 320 - 321 dfApprSlabs refers to bridge elements approach slabs with a Condition State measured in square feet
+dfApprSlabs = df20_19_18_17.loc[(df20_19_18_17['EN'] >= 320) & (df20_19_18_17['EN'] <= 321), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17']]
+
+# EN 510 -522 dfWearSfc refers to bridge elements wearing surfaces with a Condition State measured in square feet
+dfWearSfc = df20_19_18_17.loc[(df20_19_18_17['EN'] >= 510) & (df20_19_18_17['EN'] <= 522), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17']]
+
+
+# Units of Linear Feet
+# EN 102 - 112 dfGirders refers to bridge elements of the superstructure with a Condition State measured in linear feet
+dfGirders = df20_19_18_17.loc[(df20_19_18_17['EN'] >= 102) & (df20_19_18_17['EN'] <= 112), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17']]
+
+# EN 120 - 146 dfTrussArch trusses and arches Condition State measured in linear feet
+dfTrussArch = df20_19_18_17.loc[(df20_19_18_17['EN'] >= 120) & (df20_19_18_17['EN'] <= 146), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17']]
+
+# EN 113 - 118 dfStringers bridge stringers Condition State measured in linear feet
+dfStringers = df20_19_18_17.loc[(df20_19_18_17['EN'] >= 113) & (df20_19_18_17['EN'] <= 118), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17']]
+
+# EN 152 - 157 dfFlrBm floor beams Condition State measured in linear feet
+dfFlrBm = df20_19_18_17.loc[(df20_19_18_17['EN'] >= 152) & (df20_19_18_17['EN'] <= 157), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17']]
+
+# EN 147 - 149 dfMiscSup miscellaneous superstructure elements Condition State measured in linear feet
+dfMiscSup = df20_19_18_17.loc[(df20_19_18_17['EN'] >= 147) & (df20_19_18_17['EN'] <= 149), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17']]
+
+# EN 215 - 219 dfAbutments Abutment elements Condition State measured in linear feet
+dfAbutments = df20_19_18_17.loc[(df20_19_18_17['EN'] >= 215) & (df20_19_18_17['EN'] <= 219), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17']]
+
+# EN 231 - 236 dfPierCaps Pier Cap elements Condition State measured in linear feet
+dfPierCaps = df20_19_18_17.loc[(df20_19_18_17['EN'] >= 231) & (df20_19_18_17['EN'] <= 236), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17']]
+
+# EN 207 dfTwrSteel Tower Steel elements Condition State measured in linear feet
+dfTwrSteel = df20_19_18_17.loc[(df20_19_18_17['EN'] == 207), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18']]
+
+# EN 208 dfTresTimb Trestle elements made of Timber Condition State measured in linear feet
+dfTresTimb = df20_19_18_17.loc[(df20_19_18_17['EN'] == 208), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17']]
+
+# EN 210 - 213 dfPierWalls Pier Wall elements Condition State measured in linear feet
+dfPierWalls = df20_19_18_17.loc[(df20_19_18_17['EN'] >= 210) & (df20_19_18_17['EN'] <= 213), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17']]
+
+# EN 220 dfPCFRC Pile Cap/Footing - Reinforced Concrete elements Condition State measured in linear feet
+dfPCFRC = df20_19_18_17.loc[(df20_19_18_17['EN'] == 220), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18']]
+
+# EN 240 - 245 dfCulv Culvert elements Condition State measured in linear feet
+dfCulv = df20_19_18_17.loc[(df20_19_18_17['EN'] >= 240) & (df20_19_18_17['EN'] <= 245), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17']]
+
+# EN 250 dfTunnel Tunnel - Checking for this to be sure it is not present as the literature says it is no longer in purview
+dfTunnel = df20_19_18_17.loc[(df20_19_18_17['EN'] == 250), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 330 - 334 dfBrdgRail Varied Bridge Railing elements Condition State measured in linear feet (330 Metal, 331 RC, 332 Timb, 333 Other, 334 Masonry)
+dfBrdgRail = df20_19_18_17.loc[(df20_19_18_17['EN'] >= 330) & (df20_19_18_17['EN'] <= 334), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17']]
+
+# EN 300 - 309 dfJoints Varied Joint elements Condition State measured in linear feet
+dfJoints = df20_19_18_17.loc[(df20_19_18_17['EN'] >= 300) & (df20_19_18_17['EN'] <= 309), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17']]
+
+# EN 170 dfRRCF Rail Road Car Frame elements Condition State measured in linear feet
+dfRRCF = df20_19_18_17.loc[(df20_19_18_17['EN'] == 170), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17']]
+
+
+# Units of Each Below
+# EN 161 dfPin Steel Pin and Pin hanger assembly elements Condition State measured in units of each
+dfPin = df20_19_18_17.loc[(df20_19_18_17['EN'] == 161), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 162 dfGusset Steel Gusset Plate elements Condition State measured in units of each
+dfGusset = df20_19_18_17.loc[(df20_19_18_17['EN'] == 162), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 171 dfSTEELMiscSup Miscellaneous Steel Superstructures elements Condition State measured in units of each
+dfSTEELMiscSup = df20_19_18_17.loc[(df20_19_18_17['EN'] == 171), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 180 dfEQRCII Earthquake Restrainer Cables Type II Condition State measured in units of each
+dfEQRCII = df20_19_18_17.loc[(df20_19_18_17['EN'] == 180), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 181 dfEQRCC1 Earthquake Restrainer Cables - C1 Condition State measured in units of each
+dfEQRCC1 = df20_19_18_17.loc[(df20_19_18_17['EN'] == 181), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 182 dfEQROther Earthquake Restrainer Cables - Other Condition State measured in units of each
+dfEQROther = df20_19_18_17.loc[(df20_19_18_17['EN'] == 182), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 202 - 206 Column elements Condition State measured in units of each
+
+# Additionally it would be helpful for the number of each of the elements below PER BRIDGE were known- 
+
+
+
+# EN 311 dfBrgMov Bearing Type - Moveable Bearing elements Condition State measured in units of each
+dfBrgMov = df20_19_18_17.loc[(df20_19_18_17['EN'] == 311), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+dfBrgMov_20 = df20_19_18_17.loc[(df20_19_18_17['EN'] == 311), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+
+
+# EN 312 dfBrgEC Bearing Type - Enclosed/Concealed Bearing elements Condition State measured in units of each
+dfBrgEC = df20_19_18_17.loc[(df20_19_18_17['EN'] == 312), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 313 dfBrgFixed Bearing Type - Fixed Bearing elements Condition State measured in units of each
+dfBrgFixed = df20_19_18_17.loc[(df20_19_18_17['EN'] == 313), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 314 dfBrgPot Bearing Type - Pot Bearing elements Condition State measured in units of each
+dfBrgPot = df20_19_18_17.loc[(df20_19_18_17['EN'] == 314), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 315 dfBrgDisk Bearing Type - Disk Bearing elements Condition State measured in units of each
+dfBrgDisk = df20_19_18_17.loc[(df20_19_18_17['EN'] == 315), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 316 dfBrgOther Bearing Type - Other Bearing elements Condition State measured in units of each
+dfBrgOther = df20_19_18_17.loc[(df20_19_18_17['EN'] == 316), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+# End Bearings
+
+
+# EN 202 dfColSt Steel Column elements Condition State measured in units of each
+dfColSt = df20_19_18_17.loc[(df20_19_18_17['EN'] == 202), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 203 dfColOther Column elements of type Other Condition State measured in units of each
+dfColOther = df20_19_18_17.loc[(df20_19_18_17['EN'] == 203), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 204 dfColPrConc Prestressed Concrete Column elements Condition State measured in units of each
+dfColPrConc = df20_19_18_17.loc[(df20_19_18_17['EN'] == 204), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 205 dfColRfConc Reinforced Concrete Column elements Condition State measured in units of each
+dfColRfConc = df20_19_18_17.loc[(df20_19_18_17['EN'] == 205), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 206 dfColTimb Timber Column elements Condition State measured in units of each
+dfColTimb = df20_19_18_17.loc[(df20_19_18_17['EN'] == 206), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 225 dfPileSteel Pile - Steel Condition State measured in units of each
+dfPileSteel = df20_19_18_17.loc[(df20_19_18_17['EN'] == 225), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 226 dfPilePrConc Pile - Prestressed Concrete Condition State measured in units of each
+dfPilePrConc = df20_19_18_17.loc[(df20_19_18_17['EN'] == 226), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 227 dfPileRC Pile of Type - Reinforced Concrete Condition State measured in units of each
+dfPileRC = df20_19_18_17.loc[(df20_19_18_17['EN'] == 227), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 228 dfPileTimb Pile of Type - Timber Condition State measured in units of each
+dfPileTimb = df20_19_18_17.loc[(df20_19_18_17['EN'] == 228), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 229 dfPileOther Pile of Type - Other Condition State measured in units of each
+dfPileOther = df20_19_18_17.loc[(df20_19_18_17['EN'] == 229), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 251 dfPileCISS Pile- cast in steel shell Condition State measured in units of each
+dfPileCISS = df20_19_18_17.loc[(df20_19_18_17['EN'] == 251), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 252 dfPileCIDH Pile- cast in Drilled Hole Condition State measured in units of each
+dfPileCIDH = df20_19_18_17.loc[(df20_19_18_17['EN'] == 252), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 254 dfStSeisFH Steel Seismic Column Shells - Full Height Condition State measured in units of each
+dfStSeisFH = df20_19_18_17.loc[(df20_19_18_17['EN'] == 254), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 255 dfStSeisPH Steel Seismic Column Shells - Partial Height Condition State measured in units of each
+dfStSeisPH = df20_19_18_17.loc[(df20_19_18_17['EN'] == 255), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+# EN 256 dfSSP Slope/Scour Protection Condition State measured in units of each
+dfSSP = df20_19_18_17.loc[(df20_19_18_17['EN'] == 256), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+
+
+dfBrgDisk.boxplot('CS1_18','CS1_19')
+
+# dfBrgDisk.hist('CS1_18')
+
+# dfBrgDisk.plot(y='CS1_17', 'CS1_18', 'CS1_19', 'CS1_20’, x=’2017', '2018', '2019', '2020’)
+# plt.show()
+
+# dfBrgDisk.plot(y='CS1_17', 'CS1_18', 'CS1_19', 'CS1_20’, x=’year')
+
+# Bearings (Brg)
+# EN 310 dfBrgEl Bearing Type - Elastomeric Bearing elements Condition State measured in units of each
+# Below start pulling out the entries in the merged df that are Elastomeric Bearings or ['EN'] == 310
+dfBrgEl = df20_19_18_17.loc[(df20_19_18_17['EN'] == 310), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17', 'CS4_20', 'CS4_19', 'CS4_18', 'CS4_17']]
+
+dfBrgEl.insert(1, '2017', '2017')
+
+dfBrgEl.insert(2, '2018', '2018')
+
+dfBrgEl.insert(3, '2019', '2019')
+
+dfBrgEl.insert(4, '2020', '2020')
+
+
+# Elastomeric Bearings Yr 2020
+dfBrgEl_20 = df20_19_18_17.loc[(df20_19_18_17['EN'] == 310), ['STRUCNUM', 'CS1_20', 'CS2_20',  'CS3_20', 'CS4_20']]
+
+# Elastomeric Bearings Yr 2019
+dfBrgEl_19 = df20_19_18_17.loc[(df20_19_18_17['EN'] == 310), ['STRUCNUM', 'CS1_19', 'CS2_19', 'CS3_19', 'CS4_19']]
+
+# Elastomeric Bearings Yr 2018
+dfBrgEl_18 = df20_19_18_17.loc[(df20_19_18_17['EN'] == 310), ['STRUCNUM', 'CS1_18', 'CS2_18', 'CS3_18', 'CS4_18']]
+
+# Elastomeric Bearings Yr 2017
+dfBrgEl_17 = df20_19_18_17.loc[(df20_19_18_17['EN'] == 310), ['STRUCNUM', 'CS1_17', 'CS2_17',  'CS3_17', 'CS4_17']]
+
+
+# This was an attempt to make some plots- I believe I need to resample parts of my data for best results!
+import matplotlib.pyplot as plt
+
+# dfBrgEl.plot(kind='scatter', y=['CS1_20', 'CS2_20', 'CS3_20', 'CS4_20'], x= '2020')
+
+arrData = np.array(dfBrgEl)
+
+print(arrData.size)
+print(arrData.shape)
+
+dfBrgEl.plot(kind='scatter', y='CS1_20', x= '2020')
+plt.show()
+
+dfBrgEl.CS1_20.max()
+
+dfBrgEl.plot(kind='scatter', y='CS2_20', x= '2020')
+plt.show()
+
+dfBrgEl.CS2_20.max()
+
+
+# resample from yearly to monthly dfBrgEl_CS1 is the df I'm using for the purpose of linear regression Condition State 1
+
+import datetime
+
+# dfBrgEl_M is the dataframe to be converted to monthly intervals thru resample
+index = pd.date_range('12/31/2017', periods=4, freq='Y')
+dfBrgEl_M = pd.DataFrame(data=range(4), index=index, columns=['count'])
+dfBrgEl_M
+
+# Sum the number of elastomeric bearings in CS1
+BrgElCS1_17 = dfBrgEl['CS1_17'].sum()
+
+BrgElCS1_18 = dfBrgEl['CS1_18'].sum()
+
+BrgElCS1_19 = dfBrgEl['CS1_19'].sum()
+
+BrgElCS1_20 = dfBrgEl['CS1_20'].sum()
+
+# Declare a list for the new column in dfBrgEl_M
+
+BrgEl_CS1 = [dfBrgEl['CS1_17'].sum(), dfBrgEl['CS1_18'].sum(), dfBrgEl['CS1_19'].sum(), dfBrgEl['CS1_20'].sum()]
+
+dfBrgEl_M['CS1'] = BrgEl_CS1
+
+# Sum the number of elastomeric bearings in CS2
+
+# Declare a list for the new column in dfBrgEl_M
+
+BrgEl_CS2 = [dfBrgEl['CS2_17'].sum(), dfBrgEl['CS2_18'].sum(), dfBrgEl['CS2_19'].sum(), dfBrgEl['CS2_20'].sum()]
+
+dfBrgEl_M['CS2'] = BrgEl_CS2
+ 
+# Sum the number of elastomeric bearings in CS3
+
+# Declare a list for the new column in dfBrgEl_M
+
+BrgEl_CS3 = [dfBrgEl['CS3_17'].sum(), dfBrgEl['CS3_18'].sum(), dfBrgEl['CS3_19'].sum(), dfBrgEl['CS3_20'].sum()]
+
+dfBrgEl_M['CS3'] = BrgEl_CS3
+
+# Sum the number of elastomeric bearings in CS4
+
+# Declare a list for the new column in dfBrgEl_M
+
+BrgEl_CS4 = [dfBrgEl['CS4_17'].sum(), dfBrgEl['CS4_18'].sum(), dfBrgEl['CS4_19'].sum(), dfBrgEl['CS4_20'].sum()]
+
+dfBrgEl_M['CS4'] = BrgEl_CS4
+
+dfBrgEl_M.set_index(index).resample('M').bfill().reset_index()
+
+
+dfBrgEl_M = df.insert
+
+
+
+
+""" for node in xroot: 
+    res = []
+    res.append(node.attrib.get(df_cols[0]))
+    for el in df_cols[1:]: 
+        if node is not None and node.find(el) is not None:
+            res.append(node.find(el).text)
+        else: 
+            res.append(None)
+    rows.append({df_cols[i]: res[i] 
+                 for i, _ in enumerate(df_cols)})
+
+out_df = pd.DataFrame(rows, columns=df_cols)
+    
+return out_df """
+
+
+
+
+
 while s1 :
     
     while counter < len(s1):
@@ -285,8 +579,8 @@ while s1 :
 
 import seaborn as sns
 
-import matplotlib.pyplot as plt
-#%matplotlib inline
+
++#%matplotlib inline
 sns.set_theme(style='darkgrid', color_codes=True)
 
 sns.displot(data=df20_19_18_17, x=['2017','2018','2019','2020'], aspect=1.6, bins=30)
@@ -297,7 +591,7 @@ x = ['2017','2018','2019','2020']
 
 
 #column_name = "CS1_17"
-#column_sum = df20_19_18_17[column_name].sum()
+#column_sum = df20_19_18_17[column_name].sum() 
 
 
 #def getSum(n):

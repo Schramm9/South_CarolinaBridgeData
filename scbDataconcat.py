@@ -1,24 +1,38 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Oct 21 16:29:08 2021
+
 @author: Chris
 """
 
 import pandas as pd
+
 import xml.etree.ElementTree as et
 
 import numpy as np
-import numpy.ma as ma
 
-import io
+import matplotlib.pyplot as plt
 
-import os
+import seaborn as sns
 
 from functools import reduce
 
+# !!!
+# import io
+
+# !!!
+
+
+# The data used for this analysis is for the state of South Carolina.  
+# This data represents the "element level" data intended for use by the states to manage bridge inventories to allow reporting of bridge conditions and needs through risk based data driven methods to determine actions such as preservation, improvement, and replacement. The specificatiion of the National Bridge Inventory Bridge Elements can be read at this url: https://www.fhwa.dot.gov/bridge/nbi/131216_a1.pdf
+
+
+# Parse the XML files as downloaded from https://www.fhwa.dot.gov/bridge/nbi/element.cfm
+
 def parse_XML(xml_file, df_cols): 
+    
     """Thanks to Roberto Preste Author From XML to Pandas dataframes,
-    from xtree ... to return out_df
+    from xtree ... to return out_df+
     https://medium.com/@robertopreste/from-xml-to-pandas-dataframes-9292980b1c1c
     """
     
@@ -40,43 +54,29 @@ def parse_XML(xml_file, df_cols):
     out_df = pd.DataFrame(rows, columns=df_cols)
         
     return out_df
-    
 
-import glob
-import os.path
+"""End Roberto Preste code From XML to Pandas dataframes,
+    from xtree ... to return out_df
+    https://medium.com/@robertopreste/from-xml-to-pandas-dataframes-9292980b1c1c
+"""
 
-# Create a list of all CSV files
-files = glob.glob("*.xml")
-
-# Create an empty list to append the df
-filenames = []
-
-for csv in files:
-    df = pd.read_csv(csv)
-    df['Name File'] = os.path.basename(csv)
-    filenames.append(df)    
-
-
-
+# Data in the xml format for the state of South Carolina for the years 2017 to 2020 being read into individaul  dataframes.
 
 df2020=parse_XML("2020SC_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
 
 df2019=parse_XML("2019SC_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
 
-"""End Roberto Preste code From XML to Pandas dataframes,
-    from xtree ... to return out_df
-
-    https://medium.com/@robertopreste/from-xml-to-pandas-dataframes-9292980b1c1c
-"""
-
 df2018=parse_XML("2018SC_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
 
 df2017=parse_XML("2017SC_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
 
+
+
 df2020.groupby('STRUCNUM').count()
-""" reorders the rows for each bridge based on the EN """
+""" reorders the rows for each bridge based on the number of the bridge structure, aka STRUCNUM """
 
 """ 9221 unique bridges surveyed for 2020  """
+""" 9221 rows x 9 columns """
 
 df2019.groupby('STRUCNUM').count()
 
@@ -90,12 +90,15 @@ df2017.groupby('STRUCNUM').count()
 
 """ 9117 unique bridges surveyed for 2017  """
 
+
+
 df2018=df2018[df2018.EPN.isnull()]
-""" df18_17 was creating more entries than the original due to additional entries created when EN = EPN that also had CS1-CS4 data as well """
+
+""" df18_17 was creating more entries than the original due to additional entries created when EN = EPN that also had CS1-CS4 data as well, i.e. EN == 12 represents a bridge deck made of reinforced concrete, and at times in the data sets a single entry (a single STRUCNUM) for a bridge may also include EPN == 12, meaning that additional ENs (element numbers) may be recorded and tied to the larger element known as the bridge deck """
 
 df2017=df2017[df2017.EPN.isnull()]
-""" the two ...EPN.isnull() expressions above are required to merge 2017 and 2018 properly while resulting in a number of STRUCNUM """
-""" smaller than 9117, that being the total number of possible matches between the two datasets  """
+
+""" the two ...EPN.isnull() expressions above are required to merge 2017 and 2018 properly while resulting in a total number of unique STRUCNUM smaller than 9117, that being the total number of possible matches between the two datasets  """
 
 df2018['STRUCNUM'] = df2018['STRUCNUM'].apply(lambda x: '{0:0>15}'.format(x))
 
@@ -103,37 +106,52 @@ df2017['STRUCNUM'] = df2017['STRUCNUM'].apply(lambda x: '{0:0>15}'.format(x))
 
 """ the STRUCNUM columns in the 2017 and 2018 sets were a total length of 13 digits, most of those are leading zeros, the two expressions above are placing additional zeros at the left hand side of the entries to merge those sets properly where the STRUCNUM overlap """
 
+#df.insert(0, 'Name', 'abc')
+# Expression above to insert a column at the position directly to right of the index with a name and value. 
 
-df20_19 = pd.merge(df2020, df2019, suffixes=['_20', '_19'], on=['STRUCNUM','EN']) # Keeping the observations that match by structure number (STRUCNUM) and that have the same element numbers (EN) wuthin that STRUCNUM.  
+df2017.insert(0, 'YEAR', '2017')
+df2018.insert(0, 'YEAR', '2018')
+df2019.insert(0, 'YEAR', '2019')
+df2020.insert(0, 'YEAR', '2020')
+ 
+# From the previous 4 lines above the 4 dataframes have now had a year column inserted next to the index position and the corresponding year is in each cell all the way to the end of the dataframe.  
 
-# df20_19c = pd.concat(df2020, df2019, on=['STRUCNUM','EN'])
 
-# Axis 0 means rows, 1 means columns
+# !!!
+
+#concatenate the 4 dataframes
+
+df20_19_18_17 = pd.concat([df2017, df2018, df2019, df2020], axis=0)
 
 
+# !!! 
 
 """ merge 2020 and 2019 datasets with common structure and element nos. and the columns being distinguished by year via suffixes """
 
-df20_19_18 = pd.merge(df20_19, df2018, how= 'inner', on=['STRUCNUM', 'EN'])
+#df20_19_18 = pd.merge(df20_19, df2018, how= 'inner', on=['STRUCNUM', 'EN'])
 
 """ merge the 2018 dataframe into the already merged 2020 and 2019 dataframe """
 
-df20_19_18 = df20_19_18.rename({"CS1":"CS1_18", "CS2":"CS2_18", "CS3":"CS3_18", "CS4":"CS4_18"}, axis='columns')
+#df20_19_18 = df20_19_18.rename({"CS1":"CS1_18", "CS2":"CS2_18", "CS3":"CS3_18", "CS4":"CS4_18"}, axis='columns')
 
 """ rename the column headings to distinguish the condition state (CS1-CS4) entries by year """
 
-df20_19_18_17 = pd.merge(df20_19_18, df2017, on=['STRUCNUM', 'EN'])
+#df20_19_18_17 = pd.merge(df20_19_18, df2017, on=['STRUCNUM', 'EN'])
 
-""" merge the 2017 set into the other 3 years (could they all be merged at once?) """
+""" merge the 2017 set into the other 3 years """
 
 
-df20_19_18_17 = df20_19_18_17.rename({"TOTALQTY_x":"TOTALQTY_18", "TOTALQTY_y":"TOTALQTY_17", "CS1":"CS1_17", "CS2":"CS2_17", "CS3":"CS3_17", "CS4":"CS4_17"}, axis='columns')
+#df20_19_18_17 = df20_19_18_17.rename({"TOTALQTY_x":"TOTALQTY_18", "TOTALQTY_y":"TOTALQTY_17", "CS1":"CS1_17", "CS2":"CS2_17", "CS3":"CS3_17", "CS4":"CS4_17"}, axis='columns')
 
 """ rename the column headings based on year """
 
-df20_19_18_17 = df20_19_18_17.drop(columns=['FHWAED_20', 'EPN_20', 'FHWAED_19', 'STATE_19', 'EPN_19', 'FHWAED_x', 'STATE_x', 'EPN_x', 'FHWAED_y', 'STATE_y', 'EPN_y'])
+#df20_19_18_17 = df20_19_18_17.drop(columns=['FHWAED_20', 'EPN_20', 'FHWAED_19', 'STATE_19', 'EPN_19', 'FHWAED_x', 'STATE_x', 'EPN_x', 'FHWAED_y', 'STATE_y', 'EPN_y'])
 
 """ removing superfluous columns """
+
+# !!! 
+
+# !!!
 
 # !!! 12/10
 
@@ -178,9 +196,9 @@ df20_19_18_17.dtypes
 
 
 
-df20_19_18_17['STATE_20'] = pd.to_numeric(df20_19_18_17['STATE_20'],errors='coerce')
-df20_19_18_17 = df20_19_18_17.replace(np.nan, 0, regex=True)
-df20_19_18_17['STATE_20'] = df20_19_18_17['STATE_20'].astype(int)
+#df20_19_18_17['STATE_20'] = pd.to_numeric(df20_19_18_17['STATE_20'],errors='coerce')
+#df20_19_18_17 = df20_19_18_17.replace(np.nan, 0, regex=True)
+#df20_19_18_17['STATE_20'] = df20_19_18_17['STATE_20'].astype(int)
 
 # STATE does not change over time. 
 
@@ -192,7 +210,7 @@ df20_19_18_17['STATE_20'] = df20_19_18_17['STATE_20'].astype(int) """
 
 # Spent a lot of time looking for a method to change data types efficiently, but I want to get this application in, so...
 
-df20_19_18_17 = df20_19_18_17.astype({"STATE_20": 'int32', "STRUCNUM": 'int32', "EN": 'int32', "TOTALQTY_20": 'int32', "CS1_20": 'int32', "CS2_20": 'int32', "CS3_20": 'int32', "CS4_20": 'int32', "TOTALQTY_19": 'int32', "CS1_19": 'int32', "CS2_19": 'int32', "CS3_19": 'int32', "CS4_19": 'int32', "TOTALQTY_18": 'int32', "CS1_18": 'int32', "CS2_18": 'int32', "CS3_18": 'int32', "CS4_18": 'int32', "TOTALQTY_17": 'int32', "CS1_17": 'int32', "CS2_17": 'int32', "CS3_17": 'int32', "CS4_17": 'int32'})
+df20_19_18_17 = df20_19_18_17.astype({"STATE": 'int32', "STRUCNUM": 'int32', "EN": 'int32', "TOTALQTY": 'int32', "CS1": 'int32', "CS2": 'int32', "CS3": 'int32', "CS4": 'int32'})
 
 # Apologies for the ugly brute force nature of line 151 the expression above.
 
@@ -200,397 +218,10 @@ df20_19_18_17 = df20_19_18_17.astype({"STATE_20": 'int32', "STRUCNUM": 'int32', 
 
 # !!! Delete above to previous check?  
 
-
 df20_19_18_17.info() # checking the types of the data in order to manipulate them
 
-# make iterative process to come up with common STRUCNUM
 
-# Total number of years of data read in
-
-no_ofyrs = 
-
-
-a = [1, 2, 3, 4]
-b = [2, 3, 4, 5, 6]
-c = [3, 4, 5, 6, 10, 12]
-elements_in_all = list(set.intersection(*map(set, [a, b, c])))
-elements_in_all
-
-
-
-
-# !!! So it is safe to assume that the 4 dataframes can be concatenated without unexpected observations causing the analysis to be inaccurate.  But how can this be true if the original valuecounts code were giving correct also?  Do I need to only merge first and then ....?
-
-b_17 = df2017['STRUCNUM'].to_numpy()
-
-print(b_17)
-
-strUnique_17 =  pd.value_counts(b_17)
-
-b_18 = df2018['STRUCNUM'].to_numpy()
-
-print(b_18)
-
-strUnique_18 =  pd.value_counts(b_18)
-
-b_19 = df2019['STRUCNUM'].to_numpy()
-
-print(b_19)
-
-strUnique_19 =  pd.value_counts(b_19)
-
-b_20 = df2020['STRUCNUM'].to_numpy()
-
-print(b_20)
-
-strUnique_20 =  pd.value_counts(b_20)
-
-strUnique_20.equals(strUnique_19)
-
-# strUnique_19 is the largest set:
-    
-set(strUnique_19).intersection(strUnique_20)
-
-b_19_20 = set(b_19).intersection(b_20)
-
-b_19_20 = sorted(b_19_20) #10151
-
-b_17_18 = set(b_17).intersection(b_18)
-
-b_17_18 = sorted(b_17_18)
-
-# lambda function returns differences in sets
-
-# l_func = lambda x, y: list((set(x)- set(y))) + list((set(y)- set(x))) 
-
-# list_a = b_19
-# list_b = b_20
-
-# non_match = l_func(list_a, list_b) #  lists of STRUCNUM for 2019 and 2020
-
-# print("Non-match elements: ", non_match)
-
-# list_func = lambda x, y: list((set(x)- set(y))) + list((set(y)- set(x))) 
-
-# list_a = b_17
-# list_b = b_18
-
-# non_match1 = list_func(list_a, list_b) # lists of STRUCNUM for 2017 and 2018
-
-# print("Non-match elements: ", non_match)
-
-
-def non_match_elements(b_17, b_18, b_19, b_20):
-    non_match = []
-    for i in b_17:
-        if i not in b_18:
-            if i not in b_19:
-                if i not in b_20:
-                    non_match.append(i)
-    return non_match
-       
-
-#list_a = [2, 4, 6, 8, 10, 12]
-#list_b = [2, 4, 6, 8]
-
-non_match = non_match_elements(b_17, b_18)
-print("No match elements: ", non_match)
-
-
-
-#!!!
-
-list_func = lambda x, y: list((set(x)- set(y))) + list((set(y)- set(x))) 
-
-list_a = b_17
-list_b = b_20
-
-non_match2 = list_func(list_a, list_b) # lists of STRUCNUM for 2017 and 2020
-
-print("Non-match elements: ", non_match)
-
-#!!!
-
-list_func = lambda x, y: list((set(x)- set(y))) + list((set(y)- set(x))) 
-
-list_a = b_18
-list_b = b_20
-
-non_match3 = list_func(list_a, list_b) # lists of STRUCNUM for 2018 and 2020
-
-print("Non-match elements: ", non_match)
-
-#!!!
-
-list_func = lambda x, y: list((set(x)- set(y))) + list((set(y)- set(x))) 
-
-list_a = b_18
-list_b = b_19
-
-non_match4 = list_func(list_a, list_b) # lists of STRUCNUM for 2017 and 2020
-
-print("Non-match elements: ", non_match)
-
-
-intersection_19_20 = set(b_19).intersection(b_20)
-
-intersection_20_19 = set(b_20).intersection(b_19)
-
-intersection_19_20 = sorted(intersection_19_20)
-
-intersection_20_19 = sorted(intersection_20_19)
-
-intersection_20_19 == intersection_19_20 # returns true
-
-intersection_17_18 = set(b_17).intersection(b_18)
-
-intersection_18_17 = set(b_18).intersection(b_17)
-
-intersection_17_18 == intersection_18_17 # returns true
-
-intersection_17_20 = set(b_17).intersection(b_20)
-
-intersection_20_17 = set(b_20).intersection(b_17)
-
-intersection_17_20 == intersection_20_17 # returns true
-
-intersection_18_20 = set(b_18).intersection(b_20)
-
-intersection_20_18 = set(b_20).intersection(b_18)
-
-intersection_18_20 == intersection_20_18 # returns true
-
-intersection_17_19 = set(b_17).intersection(b_19)
-
-intersection_19_17 = set(b_19).intersection(b_17)
-
-intersection_17_19 == intersection_19_17 # returns true
-
-#!!! https://stackoverflow.com/questions/64637774/how-to-compare-one-list-to-multiple-lists-in-python-to-see-if-there-are-any-matc
-
-lists_STRUCNUM = 
-
-
-
-
-
-
-"""from collections import defaultdict
-
-intersections = defaultdict(set)
-
-lists = [
-    ['b_17'],
-    ['b_18'],
-    ['b_19'],
-    ['b_20']
-]
-for i in range(len(lists) - 1):
-    for j in range(i + 1, len(lists)):
-        intsec = set(lists[i]).intersection(lists[j])
-        intersections[tuple(sorted(intsec))].add(tuple(lists[i]))
-        intersections[tuple(sorted(intsec))].add(tuple(lists[i])) """
-        
-        
-from collections import defaultdict
-from copy import deepcopy
-from operator import itemgetter
-
-
-def srt(args):
-    for ind, sub in enumerate(args, 1):
-        sub.sort()
-        yield ind, sub
-
-
-list1 = ['b_17']
-list2 = ['b_18']
-list3 = ['b_19']
-list4 = ['b_20']
-
-
-d = defaultdict(defaultdict)
-orig = [list1, list2, list3, list4]
-
-all_best = defaultdict(int)
-
-subs = sorted(srt(deepcopy(orig)), key=itemgetter(1))
-for ind, ele in subs:
-    best, partner = None, None
-    for i2, ele2 in subs:
-        if ind == i2:
-            continue
-        _int = len(set(ele).intersection(ele2))
-        if best is None or best < _int:
-            best = _int
-            partner = i2
-            if all_best[ind] < best:
-                all_best[ind] = best
-    d[ind][partner] = best
-    d[partner][ind] = best
-
-grouped = []
-
-used = set()
-for k, v in (d.items()):
-    if all(val == all_best[_k] for _k, val in v.items()):
-        best = [k] + list(v)
-        if not any(s in used for s in best):
-            grouped.append(best)
-        used.update(best)
-
-print(grouped)
-print([[orig[ind - 1] for ind in grp] for grp in grouped])
-
-
-# >>> a = [1, 2, 3, 4]
-# >>> b = [2, 3, 4, 5, 6]
-# >>> c = [3, 4, 5, 6, 10, 12]
-# >>> elements_in_all = list(set.intersection(*map(set, [a, b, c])))
-# >>> elements_in_all
-# [3, 4]
-
-
-# Making totals of the various conditon states (CS1 to CS4)
-
-# 2017
-
-TotCS1_17 = df20_19_18_17['CS1_17'].sum()
-
-df20_19_18_17.loc['TotCS1_17'] = pd.Series(df20_19_18_17['CS1_17'].sum(), index = ['CS1_17'])
-
-TotCS2_17 = df20_19_18_17['CS2_17'].sum()
-
-TotCS2_17 = int(TotCS2_17)
-
-df20_19_18_17.loc['TotCS2_17'] = pd.Series(df20_19_18_17['CS2_17'].sum(), index = ['CS2_17'])
-
-TotCS3_17 = df20_19_18_17['CS3_17'].sum()
-
-TotCS3_17 = int(TotCS3_17)
-
-df20_19_18_17.loc['TotCS3_17'] = pd.Series(df20_19_18_17['CS3_17'].sum(), index = ['CS3_17'])
-
-TotCS4_17 = df20_19_18_17['CS4_17'].sum()
-
-TotCS4_17 = int(TotCS4_17)
-
-df20_19_18_17.loc['TotCS4_17'] = pd.Series(df20_19_18_17['CS4_17'].sum(), index = ['CS4_17'])
-
-# TOTCS1_17 = 46489296
-
-# TOTCS2_17 = 25322220
-
-# TOTCS3_17 = 1521673
-
-# TOTCS4_17 = 201358
-
-# 2018
-
-TotCS1_18 = df20_19_18_17['CS1_18'].sum()
-
-TotCS1_18 = int(TotCS1_18)
-
-df20_19_18_17.loc['TotCS1_18'] = pd.Series(df20_19_18_17['CS1_18'].sum(), index = ['CS1_18'])
-
-TotCS2_18 = df20_19_18_17['CS2_18'].sum()
-
-TotCS2_18 = int(TotCS2_18)
-
-df20_19_18_17.loc['TotCS2_18'] = pd.Series(df20_19_18_17['CS2_18'].sum(), index = ['CS2_18'])
-
-TotCS3_18 = df20_19_18_17['CS3_18'].sum()
-
-TotCS3_18 = int(TotCS3_18)
-
-df20_19_18_17.loc['TotCS3_18'] = pd.Series(df20_19_18_17['CS3_18'].sum(), index = ['CS3_18'])
-
-TotCS4_18 = df20_19_18_17['CS4_18'].sum()
-
-TotCS4_18 = int(TotCS4_18)
-
-df20_19_18_17.loc['TotCS4_18'] = pd.Series(df20_19_18_17['CS4_18'].sum(), index = ['CS4_18'])
-
-# TOTCS1_18 = 45280654
-
-# TOTCS2_18 = 26514152
-
-# TOTCS3_18 = 1653895
-
-# TOTCS4_18 = 230337
-
-# 2019
-
-TotCS1_19 = df20_19_18_17['CS1_19'].sum()
-
-TotCS1_19 = int(TotCS1_19)
-
-df20_19_18_17.loc['TotCS1_19'] = pd.Series(df20_19_18_17['CS1_19'].sum(), index = ['CS1_19'])
-
-TotCS2_19 = df20_19_18_17['CS2_19'].sum()
-
-TotCS2_19 = int(TotCS2_19)
-
-df20_19_18_17.loc['TotCS2_19'] = pd.Series(df20_19_18_17['CS2_19'].sum(), index = ['CS2_19'])
-
-TotCS3_19 = df20_19_18_17['CS3_19'].sum()
-
-TotCS3_19 = int(TotCS3_19)
-
-df20_19_18_17.loc['TotCS3_19'] = pd.Series(df20_19_18_17['CS3_19'].sum(), index = ['CS3_19'])
-
-TotCS4_19 = df20_19_18_17['CS4_19'].sum()
-
-TotCS4_19 = int(TotCS4_19)
-
-df20_19_18_17.loc['TotCS4_19'] = pd.Series(df20_19_18_17['CS4_19'].sum(), index = ['CS4_19'])
-
-# TOTCS1_19 = 46242954
-
-# TOTCS2_19 = 24646319
-
-# TOTCS3_19 = 1400803
-
-# TOTCS4_19 = 1018715
-
-# 2020
-
-TotCS1_20 = df20_19_18_17['CS1_20'].sum()
-
-TotCS1_20 = int(TotCS1_20)
-
-df20_19_18_17.loc['TotCS1_20'] = pd.Series(df20_19_18_17['CS1_20'].sum(), index = ['CS1_20'])
-
-TotCS2_20 = df20_19_18_17['CS2_20'].sum()
-
-TotCS2_20 = int(TotCS2_20)
-
-df20_19_18_17.loc['TotCS2_20'] = pd.Series(df20_19_18_17['CS2_20'].sum(), index = ['CS2_20'])
-
-TotCS3_20 = df20_19_18_17['CS3_20'].sum()
-
-TotCS3_20  = int(TotCS3_20)
-
-df20_19_18_17.loc['TotCS3_20'] = pd.Series(df20_19_18_17['CS3_20'].sum(), index = ['CS3_20'])
-
-TotCS4_20 = df20_19_18_17['CS4_20'].sum()
-
-TotCS4_20 = int(TotCS4_20)
-
-df20_19_18_17.loc['TotCS4_20'] = pd.Series(df20_19_18_17['CS4_20'].sum(), index = ['CS4_20'])
-
-# TOTCS1_20 = 47434320
-
-# TOTCS2_20 = 23145920
-
-# TOTCS3_20 = 1881722
-
-# TOTCS4_20 = 181230
-
-# As it turns out these totals are meaningless because the dimensions of the Condition States vary depending on the EN.
-
-
-# Going to attempt to discern how many different STRUCNUMs there are in the 'STRUCNUM' column and the quantity of each
+# Going to attempt to discern how many different ENs there are in the 'EN' column and the quantity of each
 
 # !!!
 STRUCNUMCount =  pd.value_counts(df20_19_18_17.STRUCNUM) 
@@ -599,77 +230,130 @@ STRUCNUMCount =  pd.value_counts(df20_19_18_17.STRUCNUM)
 # !!!
 STRUClist = list(reduce(set.intersection, map(set, [df2017.STRUCNUM, df2018.STRUCNUM, df2019.STRUCNUM, df2020.STRUCNUM])))
 
-# Compare the arrays (lists) of the ENs with each other and return matches
-# !!! STRUClist_20 = 
-
-# It would seem I have misinterpreted the possible number of STRUCNUM in common between the 4 datasets based on the above snippet- the number of possible bridges in all four sets is 9023.  The maximum possible is 9117 as seen above, but the number of 8992 is missing common STRUCNUM between all 4 dataframes.  Is it true that the originally merged dataframes were merged such that any elements (EN) not common between all four sets would have been eliminate during the merge?  The answer is yes.  
+# It would seem I have misinterpreted the possible number of STRUCNUM in common between the 4 datasets based on the above snippet- the number of possible bridges in all four sets is 9023
 
 # !!!
 
-# The dataframes for each year should probably be concatenated rather than merged one at a time because the method I used was dependant upon the assumption that the largest number of possibilities would be in the 2020 dataset- but this is a poor assumption because the total of STRUClist is larger than STRUCNUMCount 
+# The dataframes for each year should probably be concatenated rather than merged one at a time because the method I used was dependant upon the assumption that the largest number of possibilities would be in the 2020 dataset- but this is a poor assumption because the total of  STRUClist is larger than STRUCNUMCount 
 
 STRUClist = [int(x) for x in STRUClist]
 STRUClist.sort()
 
-#  Above converts the list of STRUCNUM to integer type and then sorts numerically, did that so I could see the order of the STRUCNUM look a little more similar to the order of bridge numbers I had been seeing in the data right after the XML has been parsed.  
+#  Above converts the list of STRUCNUM to integer type and then sorts numerically, did that so I could see the order of the STRUCNUM look a little more similar to the order of bridge numbers I had been seeing in the raw data.
 
-# elCount variable holding the counts of each element number (EN)  
-elCount =  pd.value_counts(df20_19_18_17.EN)  
-
-# Returns a series and the series has a column heading with the name of the column you value counted-strange- the count of each EN. returns a count of 7375 for the EN 234 being the most observed and inspected element in the 4 years of data.  This makes sense as EN==234 is a reinforced concrete pier cap and is very common in bridge construction.  The total possible number of bridge elements is 117 from looking in the CALTrans Bridge Element Inspection Manual.  
+# elCount variable holding the counts of each element number (EN)
+elCount =  pd.value_counts(df20_19_18_17.EN)  # returns a series and the series has a column heading with the name of the column you value counted-strange- the count of each EN. returns a count of 7375 for the EN 234 being the most observed and inspected element in the 4 years of data.  This makes sense as EN==234 is a reinforced concrete pier cap and is very common in bridge construction.  
 
 elCountList = pd.Series({'nunique': len(elCount), 'unique values': elCount.index.tolist()})
 # returns the quantity of unique ENs and a list of the ENs found in the dataset
 
 elCount.append(elCountList)
-
 # show some of the output in the console
 
- # 60 unique ENs in the set
- # Total of 117 unique ENs possible
+# 60 unique ENs in the set
 
 
-# Get the set of all the STRUCNUM and EN common across all 4 years of data in the form of an array.
-
-merged_array = np.array(df20_19_18_17[['STRUCNUM', 'EN']])
-
-# !!! # Get the rows for each STRUCNUM EN pair from the individual year dataframes.  Then concatenate.
-
-# !!! df.loc[df['B'].isin([64, 15])]
-
-# !!! extrasDF[(extrasDF.currentWorkspaceGuid.isin(workspacesDF.currentWorkspaceGuid))] workspacesDF - 1 column(currentWorkspaceGuid), and extrasDF - 4 columns (currentWorkspaceGuid, modelGuid, memoryUsage, lastModified) (show the values from the 2nd df(extrasDF) only if currentWorkspaceGuid exists in workspacesDF)
-
-# !!! show the values of the rows only if the STRUCNUM exists in the STRUClist
-
-# !!! rpt[rpt['STK_ID'].isin(stk_list)]
-
-df2020[~df2020['STRUCNUM'].isin(STRUClist)] # showing the code for 2020, 2017 - 2019 were checked and returned the entire dataframe as well.  
-
-# above line is used to check that there are no "extra" bridges in any of the dataframes, i.e. that the bridges observed each year are the same ones from year to year, that if a new bridge is observed over the years from 2017 to 2020 it would show up here.  All the dataframes are unchanged from when they are read in at the beginning of the file, so there are no extra bridges observed over this time period.  
+# Totals of conditions states for different bridge elements begin below:
 
 
-df_ = df2018[df2018[df2018.columns[2]].isin(STRUClist)]
+# elements = {}    
+    # for el_name in elements
+    # elements[name] = pd.Dataframe()
 
-
-df2017[(df2017.STRUCNUM.isin(STRUClist))]
-
-df17 = df2017.loc[df2017['STRUCNUM'].isin([STRUClist])]
-
-new_df = df2017.loc[df2017['STRUCNUM'].isin([4, 8])]
-
-
-
-
-
-# Totals of condition states for different bridge elements begin below:
 
 # Units of Square Feet generally the elements below, EN= 12 thru 65, 320, 321, and 510 thru 522 are surfaces, roadway surface basically.  
 
 # EN 12 - 65 dfDeckSlab refers to bridge elements decks and slabs with a Condition State measured in square feet. Deck slab encompassed by the EN 12 thru 65 are of many different possible material and construction.  
 
-dfDeckSlab = df20_19_18_17.loc[(df20_19_18_17['EN'] >= 12) & (df20_19_18_17['EN'] <= 65), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17']]
+
+
+""" Element # 12: Deck - Reinforced Concrete
+    Element # 13: Deck – Prestressed Concrete
+    Element # 15: Top Flange - Prestressed Concrete 
+    Element # 28: Steel Deck - Open Grid 
+    Element # 29: Steel Deck - Concrete Filled Grid 
+    Element # 30: Steel Deck - Corrugated/Orthotropic/Etc. 
+    Element # 31: Deck - Timber
+    Element # 38: Slab - Reinforced Concrete
+    Element # 39: Slab - Prestressed Concrete 
+    Element # 54: Slab - Timber
+    Element # 60: Deck - Other 
+    Element # 65: Slab - Other 
+
+"""
+
+dfDeckSlab = df20_19_18_17.loc[(df20_19_18_17['EN'] >= 12) & (df20_19_18_17['EN'] <= 65), ['STRUCNUM', 'TOTALQTY', 'CS1', 'CS2', 'CS3', 'CS4']]
+
+# Resample problem: change the x-axis part of the plot to a time component
+# 1st get set of all the same elements across all the bridges
+# 2nd get total of elements for the year and divide the year into the number of elements 
+
+
+dfEN_12 = df20_19_18_17.loc[(df20_19_18_17['EN'] == 12), ['YEAR', 'STRUCNUM', 'TOTALQTY', 'CS1', 'CS2', 'CS3', 'CS4']]
+
+# At this point I believe I need to resample the data to make the period of time between "observations" equal by dividing the year by the number of observed ENs.  
+# Count the number of 'YEAR' observations for each element, then divide the year by the number of observations for the particular year.  
+
+dfEN_12.plot.scatter(x = 'STRUCNUM', y = 'CS1')
+
+
+dfEN_12['YEAR'].value_counts()
+
+"""
+2017    3486
+2018    3470
+2019    3262
+2020    3168 """
+
+plt.scatter(dfEN_12.STRUCNUM, dfEN_12.CS1, s=60, c='purple')
+plt.scatter(dfEN_12.STRUCNUM, dfEN_12.CS2, s=60, c='purple')
+plt.scatter(dfEN_12.STRUCNUM, dfEN_12.CS3, s=60, c='purple')
+plt.scatter(dfEN_12.STRUCNUM, dfEN_12.CS4, s=60, c='purple')
+
+
+
+dfEN_13 = df20_19_18_17.loc[(df20_19_18_17['EN'] == 13), ['YEAR', 'STRUCNUM', 'TOTALQTY', 'CS1', 'CS2', 'CS3', 'CS4']]
+
+dfEN_13['YEAR'].value_counts()
+
+"""
+2020    426
+2019    319
+2018      6 """
+
+dfEN_13.plot.scatter(x = 'STRUCNUM', y = 'CS1')
+dfEN_13.plot.scatter(x = 'STRUCNUM', y = 'CS2')
+
+plt.scatter(dfEN_13.STRUCNUM, dfEN_12.CS1, s=60, c='purple')
+plt.scatter(dfEN_13.STRUCNUM, dfEN_12.CS2, s=60, c='purple')
+plt.scatter(dfEN_13.STRUCNUM, dfEN_12.CS3, s=60, c='purple')
+plt.scatter(dfEN_13.STRUCNUM, dfEN_12.CS4, s=60, c='purple')
+
+
+dfDeckSlab = df20_19_18_17.loc[(df20_19_18_17['EN'] >= 12) & (df20_19_18_17['EN'] <= 65), ['STRUCNUM', 'TOTALQTY', 'CS1', 'CS2', 'CS3', 'CS4']]
+
+dfEN_15 = df20_19_18_17.loc[(df20_19_18_17['EN'] == 15), ['YEAR', 'STRUCNUM', 'TOTALQTY', 'CS1', 'CS2', 'CS3', 'CS4']]
+
+dfEN_15['YEAR'].value_counts()
+
+"""
+2020    70
+2019    18 """
+
+plt.scatter(dfEN_15.STRUCNUM, dfEN_15.CS1, s=30, c='yellow')
+plt.scatter(dfEN_15.STRUCNUM, dfEN_15.CS2, s=40, c='blue')
+plt.scatter(dfEN_15.STRUCNUM, dfEN_15.CS3, s=50, c='green')
+plt.scatter(dfEN_15.STRUCNUM, dfEN_15.CS4, s=60, c='purple')
+
+
 
 # EN 320 - 321 dfApprSlabs refers to bridge elements approach slabs with a Condition State measured in square feet
+
+""" 
+Element # 320: Approach Slab - Prestressed Concrete 
+Element # 321: Approach Slab - Reinforced Concrete 
+
+"""
 
 dfApprSlabs = df20_19_18_17.loc[(df20_19_18_17['EN'] >= 320) & (df20_19_18_17['EN'] <= 321), ['STRUCNUM', 'CS1_20', 'CS1_19', 'CS1_18', 'CS1_17', 'CS2_20', 'CS2_19', 'CS2_18', 'CS2_17', 'CS3_20', 'CS3_19', 'CS3_18', 'CS3_17']]
 

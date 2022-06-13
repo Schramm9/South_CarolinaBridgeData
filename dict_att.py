@@ -326,7 +326,7 @@ b_18 = df18['strucnum'].to_numpy()
 
 print(b_18)
 
-# From a function's perspective: A parameter is the variable listed inside the parentheses in the function definition. An argument is the value that are sent to the function when it is called.
+# From a function's perspective: A parameter is the variable listed inside the parentheses in the function definition. An argument is the value(s) that are sent to the function when it is called.
 
 # non_match_elements is the function, b_17 and b_18 are the parameters.
 def non_match_elements(b_17, b_18):
@@ -368,17 +368,15 @@ strUnique_19 =  pd.value_counts(b_19)
 
 # b_19_20 = sorted(b_19_20) #10151
 
-
+# !!! start here
 
 #List1 = b_17.tolist()
 #List2 = b_18.tolist()
 #List3 = b_19.tolist()
 
 # maybe eliminate these variables in the main version, just put the three lists in the strucnum_in_all equation as they are already.
-a = b_17
-b = b_18
-c = b_19
-strucnum_in_all = list(set.intersection(*map(set, [a, b, c])))
+
+strucnum_in_all = list(set.intersection(*map(set, [b_17, b_18, b_19])))
 strucnum_in_all
 # [3, 4]
 
@@ -557,6 +555,7 @@ for element in elements: #very important to keep the two for loops be indented t
 deck_rc = getattr(element_df, '12')
 
 
+# !!! Probably need to delete the two rows below. 05/08/2022 Start with the coding above first!
 for element_df(el_names):
     print(element_df(value))
 

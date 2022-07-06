@@ -48,67 +48,73 @@ def parse_XML(xml_file, df_cols):
     https://medium.com/@robertopreste/from-xml-to-pandas-dataframes-9292980b1c1c
 """
 
-
+df2021=parse_XML("2021SC_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
+# 48562
 
 df2020=parse_XML("2020SC_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
+# 52619
 
 df2019=parse_XML("2019SC_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
+# 52036
 
 df2018=parse_XML("2018SC_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
+# 57830
 
 df2017=parse_XML("2017SC_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
+# 57624
 
+df2021.groupby('STRUCNUM').count()
 
-df2020.groupby('strucnum').count()
-""" reorders the rows for each bridge based on the en """
+df2020.groupby('STRUCNUM').count()
+""" reorders the rows for each bridge based on the EN """
 
 """ 9221 unique bridges surveyed for 2020  """
 
-df2019.groupby('strucnum').count()
+df2019.groupby('STRUCNUM').count()
 
 """ 9251 unique bridges surveyed for 2019  """
 
-df2018.groupby('strucnum').count()
+df2018.groupby('STRUCNUM').count()
 
 """ 9160 unique bridges surveyed for 2018  """
 
-df2017.groupby('strucnum').count()
+df2017.groupby('STRUCNUM').count()
 
 """ 9117 unique bridges surveyed for 2017  """
 
-df2018=df2018[df2018.epn.isnull()]
-""" df18_17 was creating more entries than the original due to additional entries created when en = epn that also had cs1-cs4 data as well """
+df2018=df2018[df2018.EPN.isnull()]
+""" df18_17 was creating more entries than the original due to additional entries created when EN = EPN that also had cs1-cs4 data as well """
 
-df2017=df2017[df2017.epn.isnull()]
-""" the two ...epn.isnull() expressions above are required to merge 2017 and 2018 properly while resulting in a number of strucnum """
+df2017=df2017[df2017.EPN.isnull()]
+""" the two ...EPN.isnull() expressions above are required to merge 2017 and 2018 properly while resulting in a number of STRUCNUM """
 """ smaller than 9117, that being the total number of possible matches between the two datasets  """
 
-df2018['strucnum'] = df2018['strucnum'].apply(lambda x: '{0:0>15}'.format(x))
+df2018['STRUCNUM'] = df2018['STRUCNUM'].apply(lambda x: '{0:0>15}'.format(x))
 
-df2017['strucnum'] = df2017['strucnum'].apply(lambda x: '{0:0>15}'.format(x))
+df2017['STRUCNUM'] = df2017['STRUCNUM'].apply(lambda x: '{0:0>15}'.format(x))
 
-""" the strucnum columns in the 2017 and 2018 sets were a total length of 13 digits, most of those are leading zeros, the two expressions above are placing additional zeros at the left hand side of the entries to merge those sets properly where the strucnum overlap """
+""" the STRUCNUM columns in the 2017 and 2018 sets were a total length of 13 digits, most of those are leading zeros, the two expressions above are placing additional zeros at the left hand side of the entries to merge those sets properly where the STRUCNUM overlap """
 
 
-df20_19 = pd.merge(df2020, df2019, suffixes=['_20', '_19'], on=['strucnum','en']) # Keeping the observations that match by structure number (strucnum) and that have the same element numbers (en) wuthin that strucnum.  
+df20_19 = pd.merge(df2020, df2019, suffixes=['_20', '_19'], on=['STRUCNUM','EN']) # Keeping the observations that match by structure number (STRUCNUM) and that have the same element numbers (EN) wuthin that STRUCNUM.  
 
-# df20_19c = pd.concat(df2020, df2019, on=['strucnum','en'])
+# df20_19c = pd.concat(df2020, df2019, on=['STRUCNUM','EN'])
 
 # Axis 0 means rows, 1 means columns
 
 
 
-""" merge 2020 and 2019 datasets with common structure and element nos. and the columns being distinguished by year via suffixes """
+""" merge 2020 and 2019 datasets with common structure (STRUCNUM) and element nos. (EPN) and the columns being distinguished by year via suffixes """
 
-df20_19_18 = pd.merge(df20_19, df2018, how= 'inner', on=['strucnum', 'en'])
+df20_19_18 = pd.merge(df20_19, df2018, how= 'inner', on=['STRUCNUM', 'EN'])
 
 """ merge the 2018 dataframe into the already merged 2020 and 2019 dataframe """
 
-df20_19_18 = df20_19_18.rename({"cs1":"CS1_18", "cs2":"CS2_18", "cs3":"CS3_18", "cs4":"CS4_18"}, axis='columns')
+df20_19_18 = df20_19_18.rename({"CS1":"CS1_18", "CS2":"CS2_18", "CS3":"CS3_18", "CS4":"CS4_18"}, axis='columns')
 
 """ rename the column headings to distinguish the condition state (cs1-cs4) entries by year """
 
-df20_19_18_17 = pd.merge(df20_19_18, df2017, on=['strucnum', 'en'])
+df20_19_18_17 = pd.merge(df20_19_18, df2017, on=['STRUCNUM', 'EN'])
 
 """ merge the 2017 set into the other 3 years (could they all be merged at once?) """
 
@@ -125,24 +131,24 @@ df20_19_18_17 = df20_19_18_17.drop(columns=['FHWAED_20', 'EPN_20', 'FHWAED_19', 
 
 # Begin Exploration
 
-# My hypothesis is that the condition state data consisting of cs1 through cs4 will increase with time, meaning that the condition of the bridge elements will deteriorate leading to the need for the measures of preservation, improvement and replacement.  
+# My hypothesis is that the condition state data consisting of CS1 through CS4 will increase with time, meaning that the condition of the bridge elements will deteriorate leading to the need for the measures of preservation, improvement and replacement.  
 
 # How much do the condition state values change with time?  I'll explore this through regression analysis.  
 
-# Can the bridges with the elements approaching cs4 (i.e. critical or severe) be distinguished from the others?  The CALTRANS Bridge Element Inspection Manual lays out the descriptions of the various condition states for each individual element and the conditions associated with cs4 are often distinguished from the others by prior knowledge of the bridge structure as would be information in the records of state and federal level engineering professionals but might not evident to inspectors in the field looking at the bridge itself.  Another description of the cs4 condition state for most of the elements inspected is the evidence of impact damage (the element has been struck by a vehicle or other moving object).  As a former engineer it is my opinion that making predictions about such possibilities is an analysis that requires other types of data regarding the bridge structure (clearances, average daily traffic, bridge size and location) and is not possible based solely on data of the sort provided by the datasets I have read into this analysis.  
+# Can the bridges with the elements approaching CS4 (i.e. critical or severe) be distinguished from the others?  The CALTRANS Bridge Element Inspection Manual lays out the descriptions of the various condition states for each individual element and the conditions associated with cs4 are often distinguished from the others by prior knowledge of the bridge structure as would be information in the records of state and federal level engineering professionals but might not evident to inspectors in the field looking at the bridge itself.  Another description of the cs4 condition state for most of the elements inspected is the evidence of impact damage (the element has been struck by a vehicle or other moving object).  As a former engineer it is my opinion that making predictions about such possibilities is an analysis that requires other types of data regarding the bridge structure (clearances, average daily traffic, bridge size and location) and is not possible based solely on data of the sort provided by the datasets I have read into this analysis.  
 
 # Data Exploration
 
 df20_19_18_17.shape
 
 # 
-df20_19_18_17.groupby('strucnum').count()
+df20_19_18_17.groupby('STRUCNUM').count()
 
 #37085 Rows by 23 Columns
 
 df20_19_18_17.head
 
-# Data is sorted by strucnum, numerically (low to high) 
+# Data is sorted by STRUCNUM, numerically (low to high) 
 
 df20_19_18_17.columns
 
@@ -178,9 +184,9 @@ df20_19_18_17['STATE_20'] = df20_19_18_17['STATE_20'].astype(int) """
 
 # Spent a lot of time looking for a method to change data types efficiently, but I want to get this application in, so...
 
-df20_19_18_17 = df20_19_18_17.astype({"STATE_20": 'int32', "strucnum": 'int32', "en": 'int32', "TOTALQTY_20": 'int32', "CS1_20": 'int32', "CS2_20": 'int32', "CS3_20": 'int32', "CS4_20": 'int32', "TOTALQTY_19": 'int32', "CS1_19": 'int32', "CS2_19": 'int32', "CS3_19": 'int32', "CS4_19": 'int32', "TOTALQTY_18": 'int32', "CS1_18": 'int32', "CS2_18": 'int32', "CS3_18": 'int32', "CS4_18": 'int32', "TOTALQTY_17": 'int32', "CS1_17": 'int32', "CS2_17": 'int32', "CS3_17": 'int32', "CS4_17": 'int32'})
+df20_19_18_17 = df20_19_18_17.astype({"STATE_20": 'int32', "STRUCNUM": 'int32', "EN": 'int32', "TOTALQTY_20": 'int32', "CS1_20": 'int32', "CS2_20": 'int32', "CS3_20": 'int32', "CS4_20": 'int32', "TOTALQTY_19": 'int32', "CS1_19": 'int32', "CS2_19": 'int32', "CS3_19": 'int32', "CS4_19": 'int32', "TOTALQTY_18": 'int32', "CS1_18": 'int32', "CS2_18": 'int32', "CS3_18": 'int32', "CS4_18": 'int32', "TOTALQTY_17": 'int32', "CS1": 'int32', "CS2": 'int32', "CS3": 'int32', "CS4": 'int32'})
 
-# Apologies for the ugly brute force nature of line 151 the expression above.
+# Apologies for the ugly brute force nature of the expression above.
 
 # !!! Delete between the checks?
 
@@ -193,7 +199,8 @@ df20_19_18_17.info() # checking the types of the data in order to manipulate the
 
 # Total number of years of data read in
 
-no_ofyrs = 
+# MVP II
+# no_ofyrs = 
 
 
 a = [1, 2, 3, 4]
@@ -205,27 +212,27 @@ elements_in_all
 
 
 
-# !!! So it is safe to assume that the 4 dataframes can be concatenated without unexpected observations causing the analysis to be inaccurate.  But how can this be true if the original valuecounts code were giving correct also?  Do I need to only merge first and then ....?
+# !!! So it is safe to assume that the 4 dataframes can be concatenated without unexpected observations causing the analysis to be inaccurate.  But how can this be true if the original valuecounts code were giving correct results also?  Do I need to only merge first and then ....?
 
-b_17 = df2017['strucnum'].to_numpy()
+b_17 = df2017['STRUCNUM'].to_numpy()
 
 print(b_17)
 
 strUnique_17 =  pd.value_counts(b_17)
 
-b_18 = df2018['strucnum'].to_numpy()
+b_18 = df2018['STRUCNUM'].to_numpy()
 
 print(b_18)
 
 strUnique_18 =  pd.value_counts(b_18)
 
-b_19 = df2019['strucnum'].to_numpy()
+b_19 = df2019['STRUCNUM'].to_numpy()
 
 print(b_19)
 
 strUnique_19 =  pd.value_counts(b_19)
 
-b_20 = df2020['strucnum'].to_numpy()
+b_20 = df2020['STRUCNUM'].to_numpy()
 
 print(b_20)
 
@@ -269,13 +276,13 @@ strucnum_in_all = list(set.intersection(*map(set, [b_17, b_18, b_19, b_20])))
 strucnum_in_all
 
 
-df17 = df17[np.isin(df17['strucnum'].to_numpy(), strucnum_in_all)]
+df17 = df17[np.isin(df17['STRUCNUM'].to_numpy(), strucnum_in_all)]
 
-df18 = df18[np.isin(df18['strucnum'].to_numpy(), strucnum_in_all)]
+df18 = df18[np.isin(df18['STRUCNUM'].to_numpy(), strucnum_in_all)]
 
-df19 = df19[np.isin(df19['strucnum'].to_numpy(), strucnum_in_all)]
+df19 = df19[np.isin(df19['STRUCNUM'].to_numpy(), strucnum_in_all)]
 
-df20 = df20[np.isin(df20['strucnum'].to_numpy(), strucnum_in_all)]
+df20 = df20[np.isin(df20['STRUCNUM'].to_numpy(), strucnum_in_all)]
 
 # !!! left off here!
 
@@ -315,7 +322,7 @@ list_func = lambda x, y: list((set(x)- set(y))) + list((set(y)- set(x)))
 list_a = b_18
 list_b = b_20
 
-non_match3 = list_func(list_a, list_b) # lists of strucnum for 2018 and 2020
+non_match3 = list_func(list_a, list_b) # lists of STRUCNUM for 2018 and 2020
 
 print("Non-match elements: ", non_match)
 
@@ -326,7 +333,7 @@ list_func = lambda x, y: list((set(x)- set(y))) + list((set(y)- set(x)))
 list_a = b_18
 list_b = b_19
 
-non_match4 = list_func(list_a, list_b) # lists of strucnum for 2017 and 2020
+non_match4 = list_func(list_a, list_b) # lists of STRUCNUM for 2017 and 2020
 
 print("Non-match elements: ", non_match)
 
@@ -367,7 +374,7 @@ intersection_17_19 == intersection_19_17 # returns true
 
 #!!! https://stackoverflow.com/questions/64637774/how-to-compare-one-list-to-multiple-lists-in-python-to-see-if-there-are-any-matc
 
-lists_STRUCNUM = 
+# lists_STRUCNUM = 
 
 
 
@@ -586,22 +593,22 @@ df20_19_18_17.loc['TotCS4_20'] = pd.Series(df20_19_18_17['CS4_20'].sum(), index 
 
 # TOTCS4_20 = 181230
 
-# As it turns out these totals are meaningless because the dimensions of the Condition States vary depending on the en.
+# As it turns out these totals are meaningless because the dimensions of the Condition States vary depending on the EN.
 
 
-# Going to attempt to discern how many different STRUCNUMs there are in the 'strucnum' column and the quantity of each
-
-# !!!
-STRUCNUMCount =  pd.value_counts(df20_19_18_17.strucnum) 
-
+# Going to attempt to discern how many different STRUCNUMs there are in the 'STRUCNUM' column and the quantity of each
 
 # !!!
-STRUClist = list(reduce(set.intersection, map(set, [df2017.strucnum, df2018.strucnum, df2019.strucnum, df2020.strucnum])))
+STRUCNUMCount =  pd.value_counts(df20_19_18_17.STRUCNUM) 
+
+
+# !!!
+STRUClist = list(reduce(set.intersection, map(set, [df2017.STRUCNUM, df2018.STRUCNUM, df2019.STRUCNUM, df2020.STRUCNUM])))
 
 # Compare the arrays (lists) of the ENs with each other and return matches
 # !!! STRUClist_20 = 
 
-# It would seem I have misinterpreted the possible number of strucnum in common between the 4 datasets based on the above snippet- the number of possible bridges in all four sets is 9023.  The maximum possible is 9117 as seen above, but the number of 8992 is missing common strucnum between all 4 dataframes.  Is it true that the originally merged dataframes were merged such that any elements (en) not common between all four sets would have been eliminate during the merge?  The answer is yes.  
+# It would seem I have misinterpreted the possible number of STRUCNUM in common between the 4 datasets based on the above snippet- the number of possible bridges in all four sets is 9023.  The maximum possible is 9117 as seen above, but the number of 8992 is missing common STRUCNUM between all 4 dataframes.  Is it true that the originally merged dataframes were merged such that any elements (EN) not common between all four sets would have been eliminate during the merge?  The answer is yes.  
 
 # !!!
 
@@ -612,10 +619,10 @@ STRUClist.sort()
 
 #  Above converts the list of strucnum to integer type and then sorts numerically, did that so I could see the order of the strucnum look a little more similar to the order of bridge numbers I had been seeing in the data right after the XML has been parsed.  
 
-# elCount variable holding the counts of each element number (en)  
-elCount =  pd.value_counts(df20_19_18_17.en)  
+# elCount variable holding the counts of each element number (EN)  
+elCount =  pd.value_counts(df20_19_18_17.EN)  
 
-# Returns a series and the series has a column heading with the name of the column you value counted-strange- the count of each en. returns a count of 7375 for the en 234 being the most observed and inspected element in the 4 years of data.  This makes sense as en==234 is a reinforced concrete pier cap and is very common in bridge construction.  The total possible number of bridge elements is 117 from looking in the CALTrans Bridge Element Inspection Manual.  
+f# Returns a series and the series has a column heading with the name of the column you value counted-strange- the count of each en. returns a count of 7375 for the en 234 being the most observed and inspected element in the 4 years of data.  This makes sense as en==234 is a reinforced concrete pier cap and is very common in bridge construction.  The total possible number of bridge elements is 117 from looking in the CALTrans Bridge Element Inspection Manual.  
 
 elCountList = pd.Series({'nunique': len(elCount), 'unique values': elCount.index.tolist()})
 # returns the quantity of unique ENs and a list of the ENs found in the dataset

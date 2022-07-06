@@ -9,6 +9,7 @@ import xml.etree.ElementTree as et
 
 import numpy as np
 import numpy.ma as ma
+import matplotlib.pyplot as plt
 
 from datetime import datetime
 
@@ -55,14 +56,19 @@ def parse_XML(xml_file, df_cols):
 # Parse the XML files for the individual years 
 
 df2021=parse_XML("2021SC_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
+# 48562 lines long
 
 df2020=parse_XML("2020SC_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
+# 52619 lines long
 
 df2019=parse_XML("2019SC_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
+# 52036 lines long
 
 df2018=parse_XML("2018SC_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
+# 57830 lines long
 
 df2017=parse_XML("2017SC_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN", "EPN", "TOTALQTY", "CS1", "CS2", "CS3", "CS4"])
+# 57624 lines long
 
 
 """ the strucnum columns in the 2017 and 2018 sets were a total length of 13 digits, most of those are leading zeros, the two lambda fucntions below are placing additional zeros at the left hand side of the entries to merge those sets properly where the strucnum overlap """
@@ -70,6 +76,30 @@ df2017=parse_XML("2017SC_ElementData.xml", ["FHWAED", "STATE", "STRUCNUM", "EN",
 df2018['STRUCNUM'] = df2018['STRUCNUM'].apply(lambda x: '{0:0>15}'.format(x))
 
 df2017['STRUCNUM'] = df2017['STRUCNUM'].apply(lambda x: '{0:0>15}'.format(x))
+
+
+
+df2018.groupby('STRUCNUM').count()
+
+""" 9160 unique bridges surveyed for 2018  """
+
+df2017.groupby('STRUCNUM').count()
+
+""" 9117 unique bridges surveyed for 2017  """
+
+df2018=df2018[df2018.EPN.isnull()]
+""" df18_17 was creating more entries than the original due to additional entries created when EN = EPN that also had CS1-CS4 data as well """
+# Drops the number of lines from 57830 to 46758
+
+df2017=df2017[df2017.EPN.isnull()]
+""" the two ...EPN.isnull() expressions above are required to merge 2017 and 2018 properly while resulting in a number of STRUCNUM """
+""" smaller than 9117, that being the total number of possible matches between the two datasets  """
+# Drops the number of lines from 57624 to 46497
+
+
+
+
+
 
 # !!!
 
@@ -96,7 +126,7 @@ for xml in files:
     df['File Name'] = os.path.basename(xml)
     filenames.append(df)    
 
-path = r'xml_in'
+path = r'xml_in'0
 allFiles = glob.glob(path + '/*.xml')
 
 for file_ in allFiles:   
@@ -133,28 +163,41 @@ b_20 = df2020['STRUCNUM'].to_numpy()
 b_21 = df2021['STRUCNUM'].to_numpy()
 
 
-# !!! THIS IS SUBJECT TO CHANGE: The assumption I will use is that the data for all bridges (denoted by STRUCNUM) that are common to all the years of data being analyzed (2017 - 2021 in this case) is to be considered, meaning that the data (condition states of individual bridge elements) associated with the bridges common across 5 years shall be used even if the data provided for a bridge one year is not provided for all the other years or is provided sporadically for other years (i.e. if the bridge components (EN) rated for condition state one year are not rated for all years - BUT some components of said bridge are rated for all years being considered and analyzed then those condition states for those elements can be used as part of the data).  For instance, a very common bridge component (or EN, element number) is a deck constructed of reinforced concrete, which I refer to as deck_rc, and this EN is number 12 as denoted by the Federal Highway Administration (FHWA) Specification for the National Bridge Inventory, Bridge Elements.  As such it may be that the number of observations across the years considered is not the same for that elemeent number (EN) each year- some years may include condition states associated with that element in some but not all years, but it is my intention to use as many observations as possible for as many bridge parts as possible to attempt to make the computer model accurate.  Again, ths is subject to change.  
+
+# !!! THIS IS SUBJECT TO CHANGE: The assumption I will use is that the data for all bridges (denoted by STRUCNUM) that are common to all the years of data being analyzed (2017 - 2021 in this case) is to be considered, meaning that the data (condition states of individual bridge elements) associated with the bridges common across 5 years shall be used even if the data provided for a bridge one year is not provided for all the other years or is provided sporadically for other years (i.e. if the bridge components (EN) rated for condition state one year are not rated for all years - BUT some components of said bridge are rated for all years being considered and analyzed then those condition states for those elements can be used as part of the data).  For instance, a very common bridge component (or EN, element number) is a deck constructed of reinforced concrete, which I refer to as deck_rc, and this EN is number 12 as denoted by the Federal Highway Administration (FHWA) Specification for the National Bridge Inventory, Bridge Elements.  As such it may be that the number of observations across the years considered is not the same for that elemeent number (EN) each year- some years may include condition states associated with that element in some but not all years, but it is my intention to use as many observations as possible for as many bridge parts as possible to attempt to make the computer model accurate.  Again, this is subject to change.  
 
 
 # Determine the set of STRUCNUM common to all years observed.  
 
 strucnum_in_all = list(set.intersection(*map(set, [b_17, b_18, b_19, b_20, b_21])))
-# Sort the list so its contents will look more familiar to the user.
+# Sort the list so its contents will look more familiar to the user, i.e. be in numerical order.
 strucnum_in_all = sorted(strucnum_in_all)
+# Results in 8847 bridges starting with STRUCNUM = 000000000000004 & ending with STRUCNUM = 000000000010053.
+
 
 # Remove STRUCNUM not present in all dfs
 
 df2017 = df2017[np.isin(df2017['STRUCNUM'].to_numpy(), strucnum_in_all)]
+# 57624 lines long orig. EPN.isnull() statements drop to 46497
+# No. of lines from 46497 to 45087
 
 df2018 = df2018[np.isin(df2018['STRUCNUM'].to_numpy(), strucnum_in_all)]
+# 57830 lines long orig.
+# No. of lines from 46758 to 45082
 
 df2019 = df2019[np.isin(df2019['STRUCNUM'].to_numpy(), strucnum_in_all)]
+# 52036 lines long orig.
+# No. of lines from 52036 to 49694
 
 df2020 = df2020[np.isin(df2020['STRUCNUM'].to_numpy(), strucnum_in_all)]
+# 52619 lines long orig.
+# No. of lines from 52619 to 50294
 
 df2021 = df2021[np.isin(df2021['STRUCNUM'].to_numpy(), strucnum_in_all)]
+# 48562 lines long orig.
+# No. of lines from 48562 to 47050
 
-# Then as a check, I make the STRUCNUM into sets for each newly modified dataframe strucnum_2017_mod 
+# Then to run a few checks, I make the STRUCNUM into sets for each newly modified dataframe strucnum_2017_mod, etc.
 
 strucnum_2017_mod = df2017['STRUCNUM'].unique()
 
@@ -183,6 +226,7 @@ strucnum_2020_mod.tolist()
 
 strucnum_2021_mod.tolist()
 
+
 import collections
 
 if collections.Counter(strucnum_2021_mod) == collections.Counter(strucnum_2020_mod):
@@ -190,19 +234,138 @@ if collections.Counter(strucnum_2021_mod) == collections.Counter(strucnum_2020_m
 else :
     print ("The lists are not identical")
 
+# lists associated with df2021 and df2020 are identical.
 
+# !!!
+# qty_obs_2017 = {k : f'{v}_2017' for k, v in el_names.items()} ... Make the STRUCNUM of the list strucnum_in_all into individual variables (there will be 8847 of them I assume) using the code at the beginning of this line as a guide to come up with a variable that will have the nomenclature eN_in_sTrucnum_000000000000004 (the one shown here would be a variable for STRUCNUM = 000000000000004 without anything attached to it denoting the year assessed) as a means of storing the all EN associated with that STRUCNUM for each year so there will be 8847*5 = 44235 total of those variables 
+
+# eN_in_sTrucnum
+
+
+"""
+def prepend(list, str):
+      
+    # Using format()
+    str += '{0}'
+    list = [str.format(i) for i in list]
+    return(list)
+  
+# Driver function
+list = strucnum_in_all
+str = 'eN_in_sTrucnum'
+strucnum_vars = (prepend(list, str))
+
+# {k : f'{v}_2017' for k, v in el_names.items()}
+
+"""
+# !!! 
+
+# I think I need to scrap all of that and just find a method that will make the set of bridges that can merge on STRUCNUM and EN obvious and therefore not be forced tp come up with a means of removing individual or multiple excess lines of data from each year's individual df after coming up with a list of common EN per STRUCNUM across all years being assessed!!!!
 
 
 
 
 # !!!
 
-# Is this the place where I go and make all the necessary dfs for each EN PER YEAR and then follow that with code to add the time component for each individual year so as to avoid having to ensure the number of observations per year is the same 
+# Is this the place where I go and make all the necessary dfs for each EN PER YEAR and then follow that with code to add the time component for each individual year so as to avoid having to ensure the number of observations per year is the same?  THe answer to that question is yes.  
 
-# Create EN dataframes for each year prior to concatenation of those dataframes (in this case that dataframe will be called deck_rc (note the lack of _year attached to the end) to facilitate inserting the time component individually for each bridge element for that year based on number of observations made that year.  
+# Create EN dataframes for each year prior to concatenation of those dataframes to facilitate inserting the time component individually for each bridge element for that year based on number of observations made that year.  
 
 # !!! Of course the comment above is making me wonder if the idea that I should at least be able to infer that the same amount of time has passed between successive observations of said bridge element (EN) may cause inaccuracy which would be the case if the observations of a part of a bridge were made over successive years (e.g. if STRUCNUM = 000000000000004 is observed in all years being considered but a condition state for EN = 12 IS NOT recorded each year) it would be difficult to say that the same amount of time has passed between each observation of the bridge element (EN).  
 
+# !!! Going to change the protocol for this analysis as follows:
+
+#  a.	IF a bridge (STRUCNUM) is not present in all years being considered that STRUCNUM (bridge) is eliminated from the data.
+#       i. 	IF a bridge element present in a bridge not meeting the criteria outlined in a. above (i.e. a bridge or STRUCNUM that is not eliminated from the data because that STRUCNUM IS present in all years under consideration) is not present and its condition state observed and recorded in all years being considered that bridge element (EN) is eliminated from the data.  (So eliminate the bridges first if they aren’t present in all the years then eliminate the elements from the bridges if the elements are not present in all the years for those bridges)
+
+
+# Now begins the merging of different dataframes: Going to start by merging the two longest which are df2019 and df2020
+
+df20_19 = pd.merge(df2020, df2019, suffixes=['_20', '_19'], on=['STRUCNUM','EN'])
+# pre merge the longest of the 2 dfs is 50249 lines long
+# Post merge the length is 39791 lines long
+
+# The next longest is df2021 at 47050 lines long
+
+df21_20_19 = pd.merge(df2021, df20_19, on=['STRUCNUM', 'EN'])
+# pre merge the longest of the 2 dfs is df2021 at 47050 lines long
+# Post merge the length of df21_20_19 is 38488 lines long
+
+
+# Change of suffixes post merge
+
+#df.rename(columns = {'old_col1':'new_col1', 'old_col2':'new_col2'}, inplace = True)
+
+df21_20_19.rename(columns={'filename':'filename_21', 'TOTALQTY':'TOTALQTY_21', 'CS1':'CS1_21', 'CS2':'CS2_21', 'CS3':'CS3_21', 'CS4':'CS4_21',}, inplace = True)
+
+
+# Of the two remaining dfs df2017 is longest at 45087 lines long
+
+df17_21_20_19 = pd.merge(df2017, df21_20_19, on=['STRUCNUM', 'EN'])
+
+# Post merge the length of df21_20_19_17 is 35150 lines long
+
+# Change of suffixes post merge
+
+df17_21_20_19.rename(columns={'filename':'filename_17', 'TOTALQTY':'TOTALQTY_17', 'CS1':'CS1_17', 'CS2':'CS2_17', 'CS3':'CS3_17', 'CS4':'CS4_17',}, inplace = True)
+
+# Merge of df2018 into the already merged years  2017 and 2019 thru 2021
+
+df18_17_21_20_19 = pd.merge(df2018, df17_21_20_19, on=['STRUCNUM', 'EN'])
+
+# Change of suffixes post merge
+
+df18_17_21_20_19.rename(columns={'filename':'filename_18', 'TOTALQTY':'TOTALQTY_18', 'CS1':'CS1_18', 'CS2':'CS2_18', 'CS3':'CS3_18', 'CS4':'CS4_18',}, inplace = True)
+
+# NEED TO CONVERT THE CS1 thru CS4s TO PERCENTAGES AS I DID BEFORE!!!!
+""" Perhaps do that part after I've made all the new dfs.  """
+
+
+# df17, df18, df19, df20 & df21 represent the subsets of df18_17_21_20_19 that will be removed from that dataframe to make individual dataframes to be concatenated together later.  
+
+
+# Select columns of the dataframe df18_17_21_20_19 to make the dataframe for each individual year:
+    
+# These datafames will be in the general form of column headings filename | STRUCNUM | EN | TOTALQTY | CS1 | CS2 | CS3 | CS4 and will be specific the year represented in the variable name dfXX where XX is the 2 digit year (in this case ranging from 17 to 21).
+
+
+# for year 2018
+df18 = df18_17_21_20_19.iloc[:,[0,3,4,6,7,8,9,10]]
+
+# for year 2017
+df17 = df18_17_21_20_19.iloc[:,[11,3,4,15,16,17,18,19]]
+
+# for year 2021
+df21 = df18_17_21_20_19.iloc[:,[20,3,4,24,25,26,27,28]]
+
+# for year 2020
+df20 = df18_17_21_20_19.iloc[:,[29,3,4,33,34,35,36,37]]
+
+# for year 2019
+df19 = df18_17_21_20_19.iloc[:,[38,3,4,42,43,44,45,46]]
+
+
+# Change the column headings of the first df:
+df17.columns = ['filename', 'STRUCNUM', 'EN', 'TOTALQTY', 'CS1', 'CS2', 'CS3', 'CS4']
+
+
+# concatenate the dataframes to one another starting with year 2017
+# The dataframe holding all the years in order will be called df_data
+
+df_data =pd.DataFrame(np.concatenate([df17.values, df18.values, df19.values, df20.values, df21.values], axis=0), columns=df17.columns)
+
+
+
+# Convert the columns to numeric - admittedly the filename probably does not need to be numeric, but I'm trying to get this done.
+df_data[['TOTALQTY', 'CS1', 'CS2', 'CS3', 'CS4']] = df_data[['TOTALQTY', 'CS1', 'CS2', 'CS3', 'CS4']].apply(pd.to_numeric, errors='coerce')
+
+
+# Divide the CS1 thru CS4 by TOTALQTY to make the condition state into a percentage of the total element per bridge
+df_data[['CS1','CS2','CS3','CS4']] = df_data[['CS1','CS2','CS3','CS4']].div(df_data.TOTALQTY, axis=0)
+
+
+
+"""
 qty_deck_rc_2017 = df2017['EN'].value_counts()[12]
 
 # 1507 observations of deck_rc in 2017
@@ -222,12 +385,13 @@ qty_deck_rc_2020 = df2020['EN'].value_counts()[12]
 qty_deck_rc_2021 = df2021['EN'].value_counts()[12]
 
 # 1081 observations of deck_rc in 2021
+"""
 
 
-# !!! Going to change the protocol for this analysis as follows:
 
-#  a.	IF a bridge (STRUCNUM) is not present in all years being considered that STRUCNUM (bridge) is eliminated from the data.
-#       i. 	IF a bridge element present in a bridge not meeting the criteria outlined in a. above (i.e. a bridge or STRUCNUM that is not eliminated from the data because that STRUCNUM IS present in all years under consideration) is not present and its condition state observed and recorded in all years being considered that bridge element (EN) is eliminated from the data.  (so eliminate the bridges first if they aren’t present in all the years then eliminate the elements from the bridges if the elements are not present in all the years for those bridges)
+
+
+
 
 
 
@@ -274,6 +438,8 @@ qty_deck_rc_2021 = df2021['EN'].value_counts()[12]
 
 # 1081 observations of deck_rc in 2021 """
 
+
+# el_names means Element Names
 
 el_names = {'12': 'deck_rc',
             '13': 'deck_pc',
@@ -406,13 +572,14 @@ el_names = {'12': 'deck_rc',
 
 # Make a dictionary of the keys and values of the bridge element numbers (EN) and the name I intend to give to the variable that will hold the number observations of that EN for that year using a dictionary comprehension.
 
-qty_obs_2017 = {k : f'{v}_2017' for k, v in el_names.items()}
+#qty_obs_2017 = {k : f'{v}_2017' for k, v in el_names.items()}
 
 
 
 """for key, value in el_names.items():
 
     add_string = "value" """
+"""
 qty_deck_rc_2017 = df2017['EN'].value_counts()[12] 
 
     # 1507 observations of deck_rc in 2017
@@ -453,6 +620,9 @@ df17_18_19_20_21[['CS1','CS2','CS3','CS4']] = df17_18_19_20_21[['CS1','CS2','CS3
 # Check the data types ofter performing the computations
 df17_18_19_20_21.dtypes 
 
+"""
+
+
 
 # Create the means to make the individual dataframes for each Element Number (EN) using getattr().
 
@@ -462,12 +632,12 @@ class df_names:
 element_df = df_names() # element_df will hold all the variables (which will also be variables in the form of dataframes) to be created associated with the different bridge elements or  ENs.  
 
 # Get the unique set of all EN common to all years being obsesrved/inventoried.  
-elements = df17_18_19_20_21['EN'].unique()
+elements = df_data['EN'].unique()
 
 
 for element in elements:
     
-    setattr(element_df, f"{element}", df17_18_19_20_21[df17_18_19_20_21['EN']==element].reset_index(drop=True))
+    setattr(element_df, f"{element}", df_data[df_data['EN']==element].reset_index(drop=True))
     
 for element in elements: #very important to keep the two for loops indented to the same spot! Second loop is not a nested loop!
         print(getattr(element_df, f"{element}"))
@@ -894,11 +1064,48 @@ deck_memb = getattr(element_df, '522', None) # None in the data, MVP II
     # End Wearing Surfaces
     
     # End Elements
+    
+# 67 of the possible EN are NoneType objects (i.e. there are no observations of those EN present across all years being considered) which is not surprising because the list of total possible elements is exhaustive and many of the total of  124 elements are specialized types of constructin that do not see use in most typical highway briidges.  
 
 
-# Make the required dfs and then make plots and perform regression.  
 # Create time column for the plots.  
+# Make the required dfs and then make plots and perform regression.  
 # Create a column to compute the percentage of each CS (condition state) as means to determine when that CS might overtake all of the elements to which it pertains.  
-# Make the total number of observations of each bridge element spread evenly across the total number of years inventoried.  Or should it be spread the observations evenly across the year for which the observations have been made?  
 
-deck_rc = 
+
+# I expect the most commonly used elements present in the data to be the type with the suffix _rc meaning reinforced concrete and _pc meaning prestressed concrete.  
+
+
+#simple linear regression for deck_rc or reinforced concrete deck
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, mean_absolute_error
+import math
+
+# deck_rc 
+
+# Going to do some work to this dataframe before using it to make a regression model
+
+# The deck_rc df is 13170 lines long and has 5 years of data 13170/5 = 2634 entries per year.  
+
+
+# Create a datetime object to use for the deck_rc df:
+# Note how the range is stopped at 12/30/2021 to make the number of intervals between observations the same for each year and to allow for the 2020 leap year.  00:00:00.000000
+
+deck_rc_dates = pd.date_range(start='1/1/2017', end='12/30/2021', periods=13170, freq=AS)
+
+# end of 2017 beginning 2018 goes over by 2 periods
+
+# end of 2019 beginning 2020 goes over by 4 periods
+
+# end of 2020 beginning 2021 goes over by 14 periods
+
+deck_rc = deck_rc.assign(Date=deck_rc_dates)
+
+deck_rc = deck_rc.drop(['Date'], axis=1)
+
+
+
+#set variables need to be in specific format 
+X1 = deck_rc.odometer.values.reshape(-1,1)
+y1 = deck_rc.price.values.reshape(-1,1)

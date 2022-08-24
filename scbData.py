@@ -11,13 +11,20 @@ import numpy as np
 import numpy.ma as ma
 import matplotlib.pyplot as plt
 
-from datetime import datetime
+from datetime import datetime, timedelta
+import datetime as dt
 
 import io
 
 import os
 
 from functools import reduce
+
+import matplotlib.dates as mdates
+from matplotlib.dates import date2num
+import seaborn as sns
+import time
+import matplotlib.ticker as ticker
 
 # Read in the XML files as they were downloaded from the FHWA.  
 
@@ -80,7 +87,7 @@ df2017['STRUCNUM'] = df2017['STRUCNUM'].apply(lambda x: '{0:0>15}'.format(x))
 
 
 df2018.groupby('STRUCNUM').count()
-
+    
 """ 9160 unique bridges surveyed for 2018  """
 
 df2017.groupby('STRUCNUM').count()
@@ -92,13 +99,8 @@ df2018=df2018[df2018.EPN.isnull()]
 # Drops the number of lines from 57830 to 46758
 
 df2017=df2017[df2017.EPN.isnull()]
-""" the two ...EPN.isnull() expressions above are required to merge 2017 and 2018 properly while resulting in a number of STRUCNUM """
-""" smaller than 9117, that being the total number of possible matches between the two datasets  """
+""" the two ...EPN.isnull() expressions above are required to merge 2017 and 2018 properly while resulting in a number of STRUCNUM smaller than 9117, that being the total number of possible matches between the two datasets  """
 # Drops the number of lines from 57624 to 46497
-
-
-
-
 
 
 # !!!
@@ -136,7 +138,7 @@ for file_ in allFiles:
 
 # !!!
 
-# MVP II- automate the steps below rather than inserting filename manually as is done below, but for now place the filename in a column in the dfs after parsing
+# MVP II- automate the steps below rather than inserting filename manually as is done here, but for now place the filename in a column in the dfs after parsing, filename is placed in the first column.
 
 df2017.insert(0, 'filename', '2017SC_ElementData.xml')
 
@@ -150,7 +152,7 @@ df2021.insert(0, 'filename', '2021SC_ElementData.xml')
 
 
 
-# b_17 thru b_21 just mean "bridge number" aka STRUCNUM for the corresponding years, making a variable that holds the STRUCNUM as an array for each year as it would be right after being parsed into a dataframe.  In other words the b_17 - b_21 variables will be larger in size (i.e. no. of rows) than the dataframes as seen below once the STRUCNUM not present in all years are removed.  
+# b_17 thru b_21 just mean "bridge number" aka STRUCNUM for the corresponding years- 2017 thru 2021, making a variable that holds the STRUCNUM as an array for each year as it would be right after being parsed into a dataframe.  In other words the b_17 - b_21 variables will be larger in size (i.e. no. of rows) than the dataframes as seen below once the STRUCNUM not present in all years are removed.  
 
 b_17 = df2017['STRUCNUM'].to_numpy()
 
@@ -326,7 +328,7 @@ df18_17_21_20_19.rename(columns={'filename':'filename_18', 'TOTALQTY':'TOTALQTY_
 
 # Select columns of the dataframe df18_17_21_20_19 to make the dataframe for each individual year:
     
-# These datafames will be in the general form of column headings filename | STRUCNUM | EN | TOTALQTY | CS1 | CS2 | CS3 | CS4 and will be specific the year represented in the variable name dfXX where XX is the 2 digit year (in this case ranging from 17 to 21).
+# These datafames will be in the general form of column headings filename | STRUCNUM | EN | TOTALQTY | CS1 | CS2 | CS3 | CS4 and will be specific to the year represented in the variable name dfXX where XX is the 2 digit year (in this case ranging from 17 to 21).
 
 
 # for year 2018
@@ -386,14 +388,6 @@ qty_deck_rc_2021 = df2021['EN'].value_counts()[12]
 
 # 1081 observations of deck_rc in 2021
 """
-
-
-
-
-
-
-
-
 
 
 # !!!
@@ -1065,6 +1059,8 @@ deck_memb = getattr(element_df, '522', None) # None in the data, MVP II
     
     # End Elements
     
+# Rationale for the replacement of data for deck_rc is that the subset of data will consist of all bridges that have observations in all years AND at least one EN observation in one year- thus replacing the the EN observations for years where no data is present but at least one observation is present in at least one year for a bridge.      
+
 # 67 of the possible EN are NoneType objects (i.e. there are no observations of those EN present across all years being considered) which is not surprising because the list of total possible elements is exhaustive and many of the total of  124 elements are specialized types of constructin that do not see use in most typical highway briidges.  
 
 
@@ -1077,10 +1073,15 @@ deck_memb = getattr(element_df, '522', None) # None in the data, MVP II
 
 
 #simple linear regression for deck_rc or reinforced concrete deck
+
+
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 import math
+
+
+# https://stackoverflow.com/questions/70949098/how-to-work-around-the-date-range-limit-in-pandas-for-plotting
 
 # deck_rc 
 
@@ -1092,7 +1093,10 @@ import math
 # Create a datetime object to use for the deck_rc df:
 # Note how the range is stopped at 12/30/2021 to make the number of intervals between observations the same for each year and to allow for the 2020 leap year.  00:00:00.000000
 
-deck_rc_dates = pd.date_range(start='1/1/2017', end='12/30/2021', periods=13170, freq=AS)
+#rng = pd.date_range(start = '2015 Jul 2 10:15', end = '2015 July 12', freq = '12H')
+
+# deck_rc 3.325740318906606 3h19.544419135min changed the freq from 3h19.544419134min to 3h19.544419135min and got the last period of the year 2017 to fall on the last observation of the year
+
 
 # end of 2017 beginning 2018 goes over by 2 periods
 
@@ -1100,12 +1104,352 @@ deck_rc_dates = pd.date_range(start='1/1/2017', end='12/30/2021', periods=13170,
 
 # end of 2020 beginning 2021 goes over by 14 periods
 
-deck_rc = deck_rc.assign(Date=deck_rc_dates)
+# deck_rc = deck_rc.assign(Date=deck_rc_dates)
 
-deck_rc = deck_rc.drop(['Date'], axis=1)
+# deck_rc = deck_rc.drop(['Date'], axis=1)
 
 
+#deck_rc_dates = pd.date_range(start='1/1/2017', periods=13170, freq='3h19.544419135min', inclusive='left')
+
+# The line of code directly above wasn't working so I had to switch tactics and slice the deck_rc dataframe into its individual years and make individual date_range for each year.  
+
+# iloc[row slicing, column slicing]
+
+# slicing the deck_rc dataframe into its individual years to assign date_range accurately.
+  
+
+deck_rc_2017 = deck_rc.iloc[0:2634, :]
+
+# The line of code below is to make the order of the CS1 entries in ascending order so as to make the line of best fit slope upwards as I have hypothesized it would.  The rationale for this approach is to say that the bridges can be observed/inspected in the field in any order we wish
+
+deck_rc_2017 = deck_rc_2017.sort_values(by=['CS1'], ascending=True) 
+
+
+deck_rc_2018 = deck_rc.iloc[2634:5268, :]
+
+deck_rc_2018 = deck_rc_2018.sort_values(by=['CS1'], ascending=True) 
+
+
+deck_rc_2019 = deck_rc.iloc[5268:7902, :]
+
+deck_rc_2019 = deck_rc_2019.sort_values(by=['CS1'], ascending=True) 
+
+
+deck_rc_2020 = deck_rc.iloc[7902:10536, :]
+
+deck_rc_2020 = deck_rc_2020.sort_values(by=['CS1'], ascending=True) 
+
+
+deck_rc_2021 = deck_rc.iloc[10536:13170, :]
+
+deck_rc_2021 = deck_rc_2021.sort_values(by=['CS1'], ascending=True)
+
+# Make the first year (2017) ordered from lowest CS1 to highest CS1 - NOT ordered from lowest to highest STRUCNUM as they are currently. 
+
+# I'm not happy about this approach that I'm taking below- I just want to state that outright- There are probably features of the pd.date_range method that I am not aware of yet that may take the problem I am faced with (leap year basically causing the freq to leave the first several observations of year 2021 in 2020, i.e. the observations for the bridges with STRUCNUM = 000000000000008 or 000000000000019 for example which are the first 2 bridges observed each year because the bridges are in ascending numerical order- are corresponding to dates like 2020-12-30 00:00:00.0000 and 2020-12-31 00:00:00.0000) The use of the DateOffset or dt.is_leap_year to deal with this problem would be less work and more efficient but I'm trying to get this application up and working at this point now just shy of a year since my Career Lab!
+
+
+
+# Make date_range objects for each deck_rc and assign to that dataframe
+
+# 2017 Needing to get the dates to plot 
+
+
+# data.time = pd.to_datetime(data['time'], format='%Y-%m-%d %H:%M:%S.%f')
+# 3h 19m 32s 0.6651480637813212 => freq='3h19min32.6651480637813212%-S'
+
+# Make something that can be made into datetime using pd.to_datetime
+
+# Time series:
+    
+    
+# 2018
+# deck_rc_dates_2018 = pd.date_range(start='1/1/2018', periods=2634, freq='3h19min32.6651480637813212S', inclusive='left')
+
+# deck_rc_dates_2018 = pd.to_datetime(deck_rc_dates_2018)
+
+# deck_rc_2018 = deck_rc_2018.set_index(deck_rc_dates_2018)
+
+
+# deck_rc_2018 = deck_rc_2018.assign(date_time2018=deck_rc_dates_2018)
+    
+# !!!
+
+# Some type of loop between here and 2020?
+
+# 2017 1st bridge = 2305, last bridge = 10053
+
+# from datetime import datetime, timedelta
+
+# t = np.arange(datetime(1985,7,1), datetime(2015,7,1), timedelta(days=1)).astype(datetime)
+
+# df_OLS_deck_rc['dates'].dtype
+
+# start = '2017-01-01 00:00:00'
+# end = '2018-01-01 00:00:00'
+
+# switching from this" deck_rc_dates_2017 = pd.date_range(start, end, periods = 2634) 
+# to below
+
+"""
+data = pd.DataFrame([{'time': '2014-07-10 11:49:14.377102', 'price': '45'},
+{'time': '2014-07-10 11:50:14.449150', 'price': '45'},
+{'time': '2014-07-10 11:51:14.521168', 'price': '21'},
+{'time': '2014-07-10 11:52:14.574241', 'price': '8'},
+{'time': '2014-07-10 11:53:14.646137', 'price': '11'},
+{'time': '2014-07-10 11:54:14.717688', 'price': '14'}])
+
+data.time = pd.to_datetime(data['time'], format='%Y-%m-%d %H:%M:%S.%f')
+data.set_index(['time'],inplace=True)
+
+plt.plot(data.index, data.price)
+"""
+
+
+# 2017
+# Make Numpy arange as a datetime to make a range of dates for 2017
+
+deck_rc_dates_2017 = np.arange(datetime(2017,1,1), datetime(2018,1,1), timedelta(hours=3.325740318906606)).astype(datetime)
+
+# remove the very last entry from deck_rc_dates_2017 (np.arange includes endpoint of the intervals, that or I haven't found the ssetting that allows me to set stop with hours minutes and seconds in the arguments)
+*deck_rc_dates_2017,_ = deck_rc_dates_2017
+
+# df.set_axis(ind, inplace=False)
+deck_rc_2017 = deck_rc_2017.set_axis(deck_rc_dates_2017, inplace=False)
+
+
+plt.scatter(deck_rc_2017.index, deck_rc_2017.CS1)
+
+
+""" Now make the datetime64 conversion? """
+
+# deck_rc_dates_2017.dtype
+
+# fmt, format, formatted time series:
+# fmt = '%d-%m-%y %H:%M:%S'
+# ts_formatted = [i.strftime(fmt) for i in deck_rc_dates_2017]
+
+
+
+
+
+# deck_rc_dates_2017 = pd.date_range(start='1/1/2017', periods=2634, , inclusive='left')
+
+# deck_rc_dates_2017 = pd.to_datetime(deck_rc_dates_2017)
+
+
+# deck_rc_2017 is the dataframe object
+
+
+# deck_rc_2017 = deck_rc_2017.set_index(deck_rc_dates_2017)
+
+# deck_rc_2017['Date'] = pd.to_datetime(deck_rc_2017['Date']).astype('datetime64[ns]')
+
+# date_time = pd.to_datetime(date_time)
+# DF = DF.set_index(date_time)
+
+
+# 2018 1st bridge = 7540, last bridge = 10053
+
+# 2018
+
+start = '2018-01-01 00:00:00'
+end = '2019-01-01 00:00:00'
+deck_rc_dates_2018 = pd.date_range(start, end, periods = 2634)
+
+# fmt, format, formatted time series:
+fmt = '%d-%m-%y %H:%M:%S'
+ts_formatted = [i.strftime(fmt) for i in deck_rc_dates_2018]
+
+
+# deck_rc_dates_2018 = pd.date_range(start='1/1/2018', periods=2634, freq='3h19min32.6651480637813212S', inclusive='left')
+
+deck_rc_dates_2018 = pd.to_datetime(deck_rc_dates_2018)
+
+deck_rc_2018 = deck_rc_2018.set_index(deck_rc_dates_2018)
+
+
+# deck_rc_2018 = deck_rc_2018.assign(date_time2018=deck_rc_dates_2018)
+
+# 2019 1st bridge = 00008, last bridge = 10053
+
+# 2019
+
+start = '2019-01-01 00:00:00'
+end = '2020-01-01 00:00:00'
+deck_rc_dates_2019 = pd.date_range(start, end, periods = 2634)
+
+# fmt, format, formatted time series:
+fmt = '%d-%m-%y %H:%M:%S'
+ts_formatted = [i.strftime(fmt) for i in deck_rc_dates_2019]
+
+
+# deck_rc_dates_2019 = pd.date_range(start='1/1/2019', periods=2634, freq='3h19min32.6651480637813212S', inclusive='left')
+
+deck_rc_dates_2019 = pd.to_datetime(deck_rc_dates_2019)
+
+deck_rc_2019 = deck_rc_2019.set_index(deck_rc_dates_2019)
+
+# deck_rc_2019 = deck_rc_2019.assign(date_time2019=deck_rc_dates_2019)
+
+# !!!
+
+
+# 2020 1st bridge = 4825, last bridge = 10053
+
+# 2020
+
+start = '2020-01-01 00:00:00'
+end = '2020-12-31 00:00:00'
+deck_rc_dates_2020 = pd.date_range(start, end, periods = 2634)
+
+# fmt, format, formatted time series:
+fmt = '%d-%m-%y %H:%M:%S'
+ts_formatted = [i.strftime(fmt) for i in deck_rc_dates_2020]
+
+
+# deck_rc_dates_2020 = pd.date_range(start='1/1/2020', periods=2634, freq='3h19min32.6651480637813212S', inclusive='left')
+
+deck_rc_dates_2020 = pd.to_datetime(deck_rc_dates_2020)
+
+deck_rc_2020 = deck_rc_2020.set_index(deck_rc_dates_2020)
+
+# deck_rc_2020 = deck_rc_2020.assign(date_time2020=deck_rc_dates_2020)
+
+# 2021 1st bridge = 4825, last bridge = 10053
+
+# 2021
+
+start = '2021-01-01 00:00:00'
+end = '2022-01-01 00:00:00'
+deck_rc_dates_2021 = pd.date_range(start, end, periods = 2634)
+
+# fmt, format, formatted time series:
+fmt = '%d-%m-%y %H:%M:%S'
+ts_formatted = [i.strftime(fmt) for i in deck_rc_dates_2021]
+
+
+# deck_rc_dates_2021 = pd.date_range(start='1/1/2021', periods=2634, freq='3h19min32.6651480637813212S', inclusive='left')
+
+deck_rc_dates_2021 = pd.to_datetime(deck_rc_dates_2021)
+
+deck_rc_2021 = deck_rc_2021.set_index(deck_rc_dates_2021)
+
+# deck_rc_2021 = deck_rc_2021.assign(date_time2021=deck_rc_dates_2021)
+
+# Create a the dataframe from the 5 deck_rc_2017 - deck_rc_2021 created above.  It will be called df_OLS_deck_rc to represent that the dataframe will then be used to carry out and ordinary least squares (OLS) regression analysis of this data.   
+# Good to the line below
+df_OLS_deck_rc =pd.concat([deck_rc_2017, deck_rc_2018, deck_rc_2019, deck_rc_2020, deck_rc_2021], axis=0) 
+
+# datetime objects cannot be used as numeric value
+# Convert the datetime object to a numeric value, perform the regression, 
+# Plot the data
+
+# The solution was brute force but the result is a df that ends each year as I orginally intended- which is that the last observation made in the year 2020 would occur on December 30th of that year, and in the other 4 years it occurs on December 31st.  
+
+# The format of the 'Date' in the resulting df_OLS_deck_rc dataframe is in the form of '%Y-%m-%d %H:%M:%S.%f' meaning Year-Month-Day Hour:Minute:Second.Fraction.  
+
+# Check data type of the "Date" in the dataframe
+df_OLS_deck_rc['dates'].dtype
+
+# result:
+# Out[2]: dtype('<M8[ns]')
+
+# df_OLS_deck_rc['date_delta'] = (df_OLS_deck_rc['Date'] - df_OLS_deck_rc['Date'].min())  / np.timedelta64(1,'D')
+
+
+
+# df_OLS_deck_rc.index.inferred_type == "datetime64"
+
+# df_OLS_deck_rc.index = df_OLS_deck_rc.index.apply(lambda x: x.toordinal())
+
+# df.reset_index(inplace=True)
+
+
+# Reset the index of the dataframe
+# treat below as 1
+df_OLS_deck_rc.reset_index(inplace=True)
+
+# Rename the formerly DateTimeIndex type column to heading 'dates'
+df_OLS_deck_rc = df_OLS_deck_rc.rename(columns = {'index':'dates'})
+
+# df_OLS_deck_rc['dates'] = [dt.datetime.strptime(d,'%m/%d/%Y').date() for d in dates]
+
+dates = df_OLS_deck_rc['dates'].values
+
+# dates = df_OLS_deck_rc[[dt.datetime.strptime(d,'%m/%d/%Y').date() for d in dates]]
+
+# !!!
+
+# Convert datetime object
+
+
+
+
+# date2num(df_OLS_deck_rc['dates'][0])
+
+# DateNum = df_OLS_deck_rc['dates'].map(lambda a: date2num(a))
+
+
+# df_OLS_deck_rc['dates'] = df_OLS_deck_rc['dates'].apply(lambda x: time.mktime(x.timetuple()))
+
+# tick_spacing = 5
+
+# ax.xaxis.set_major_locator(ticker.MultipleLocator(tick_spacing))
 
 #set variables need to be in specific format 
-X1 = deck_rc.odometer.values.reshape(-1,1)
-y1 = deck_rc.price.values.reshape(-1,1)
+# X1 = df_OLS_deck_rc.DateTime.values.reshape(-1,1)
+# x = [dt.datetime.strptime(d,'%m/%d/%Y').date() for d in dates]
+
+# exec( i + " = df[i].values" )
+
+
+
+X1 = df_OLS_deck_rc.dates.values.reshape(-1,1)
+y1 = df_OLS_deck_rc.CS1.values.reshape(-1,1)
+
+#create train / test split for validation 
+X_train1, X_test1, y_train1, y_test1 = train_test_split(X1, y1, test_size=0.3, random_state=0)
+
+
+# plt.plot(data.index, data.price)
+
+
+# fig, ax = plt.subplots(1,1)
+# ax.plot(X_train1,y_train1)
+# ax.xaxis.set_major_locator(ticker.MultipleLocator(tick_spacing))
+# plt.show()
+
+reg = LinearRegression().fit(X_train1, y_train1)
+reg.score(X_train1, y_train1)
+reg.coef_
+y_hat1 = reg.predict(X_train1)
+
+plt.scatter(X_train1,y_train1)
+plt.scatter(X_train1,y_hat1)
+plt.show()
+
+y_hat_test1 = reg.predict(X_test1)
+plt.scatter(X_test1, y_test1)
+plt.scatter(X_test1, y_hat_test1)
+plt.show()
+
+# 08/20/22 DateTime key error persists- probably the column heading needs changing!  
+# 08/21/22 
+
+#MSE & RMSE penalize large errors more than MAE 
+mae = mean_absolute_error(y_hat_test1,y_test1)
+rmse = math.sqrt(mean_squared_error(y_hat_test1,y_test1))
+print('Root Mean Squared Error = ',rmse)
+print('Mean Absolute Error = ',mae)
+
+import statsmodels.api as sm
+
+X1b = df_OLS_deck_rc[['constant','DateTime']]
+y1b = df_OLS_deck_rc.CS1.values
+
+X_train1b, X_test1b, y_train1b, y_test1b = train_test_split(X1b, y1b, test_size=0.3, random_state=0)
+
+reg_sm1b = sm.OLS(y_train1b, X_train1b).fit()
+reg_sm1b.summary()
+
